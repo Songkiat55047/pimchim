@@ -1,0 +1,108 @@
+// src/routes/auth.js
+const router = require("express").Router();
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { PrismaClient } = require("@prisma/client");
+const { authenticate } = require("../middleware/auth");
+
+const prisma = new PrismaClient();
+
+function signToken(payload) {
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
+}
+
+// POST /api/auth/login
+// Body: { username, password, role: "teacher" | "student" }
+router.post("/login", async (req, res) => {
+  const { username, password, role } = req.body;
+  if (!username || !password || !role) {
+    return res.status(400).json({ message: "username, password, role required" });
+  }
+
+  try {
+    if (role === "teacher") {
+      const user = await prisma.user.findUnique({ where: { username } });
+      if (!user) return res.status(401).json({ message: "ไม่พบผู้ใช้งาน" });
+
+      const valid = await bcrypt.compare(password, user.passwordHash);
+      if (!valid) return res.status(401).json({ message: "รหัสผ่านไม่ถูกต้อง" });
+
+      const token = signToken({ id: user.id, role: "TEACHER", name: user.name });
+      return res.json({
+        token,
+        user: { id: user.id, name: user.name, role: "TEACHER" },
+        requirePasswordChange: false,
+      });
+    }
+
+    if (role === "student") {
+      // Student ID is uppercase
+      const studentId = username.toUpperCase();
+      const student = await prisma.student.findUnique({ where: { id: studentId } });
+      if (!student) return res.status(401).json({ message: "ไม่พบรหัสนักเรียน" });
+
+      const valid = await bcrypt.compare(password, student.passwordHash);
+      if (!valid) return res.status(401).json({ message: "รหัสผ่านไม่ถูกต้อง" });
+
+      const token = signToken({ id: student.id, role: "STUDENT", name: student.name });
+      return res.json({
+        token,
+        user: { id: student.id, name: student.name, role: "STUDENT", class: student.class },
+        requirePasswordChange: !student.passwordChanged,
+      });
+    }
+
+    return res.status(400).json({ message: "role must be teacher or student" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// POST /api/auth/change-password  (student only, must be logged in)
+// Body: { newPassword }
+router.post("/change-password", authenticate, async (req, res) => {
+  const { newPassword } = req.body;
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ message: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" });
+  }
+
+  try {
+    if (req.user.role !== "STUDENT") {
+      return res.status(403).json({ message: "Only students change password here" });
+    }
+
+    const hash = await bcrypt.hash(newPassword, 10);
+    await prisma.student.update({
+      where: { id: req.user.id },
+      data: { passwordHash: hash, passwordChanged: true },
+    });
+
+    res.json({ message: "เปลี่ยนรหัสผ่านสำเร็จ" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// GET /api/auth/me
+router.get("/me", authenticate, async (req, res) => {
+  try {
+    if (req.user.role === "TEACHER") {
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: { id: true, username: true, name: true, role: true },
+      });
+      return res.json(user);
+    }
+    const student = await prisma.student.findUnique({
+      where: { id: req.user.id },
+      select: { id: true, name: true, class: true, score: true, level: true, passwordChanged: true },
+    });
+    return res.json({ ...student, role: "STUDENT" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+module.exports = router;

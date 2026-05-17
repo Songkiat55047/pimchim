@@ -1,0 +1,75 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  username        String   @unique
+  passwordHash    String
+  role            Role     @default(TEACHER)
+  name            String
+  createdAt       DateTime @default(now())
+}
+
+model Student {
+  id              String       @id  // e.g. "STD001"
+  name            String
+  class           String
+  score           Int          @default(0)
+  level           Int          @default(1)
+  passwordHash    String
+  passwordChanged Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  scoreLogs       ScoreLog[]
+  readAnnouncements AnnouncementRead[]
+}
+
+model ScoreLog {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  delta       Int      // positive = give, negative = deduct
+  description String
+  givenBy     String   // teacher name
+  createdAt   DateTime @default(now())
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  createdBy String
+  createdAt DateTime @default(now())
+  reads     AnnouncementRead[]
+}
+
+model AnnouncementRead {
+  id             String       @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  studentId      String
+  student        Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  readAt         DateTime     @default(now())
+
+  @@unique([announcementId, studentId])
+}
+
+model Assignment {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  dueDate     DateTime
+  createdBy   String
+  createdAt   DateTime @default(now())
+}
+
+enum Role {
+  TEACHER
+  STUDENT
+}
