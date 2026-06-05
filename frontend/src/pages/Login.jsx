@@ -1,12 +1,12 @@
 // src/pages/Login.jsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import useAuthStore from "../stores/authStore";
 import { useToast } from "../components/ui";
 
 export default function Login() {
   const [tab, setTab] = useState("teacher");
-  const [form, setForm] = useState({ username: "teacher01", password: "1234" });
+  const [form, setForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const { login } = useAuthStore();
   const navigate = useNavigate();
@@ -31,10 +31,7 @@ export default function Login() {
 
   function switchTab(t) {
     setTab(t);
-    setForm(t === "teacher"
-      ? { username: "teacher01", password: "1234" }
-      : { username: "", password: "" }
-    );
+    setForm({ username: "", password: "" });
   }
 
   return (
@@ -97,9 +94,14 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="text-center text-green-400 text-xs mt-4">
-          Demo: ครู → teacher01 / 1234 | นักเรียน → STD001
-        </p>
+        {tab === "teacher" && (
+          <p className="text-center text-green-400 text-xs mt-4">
+            ยังไม่มีบัญชี?{" "}
+            <Link to="/signup" className="text-indigo-500 font-semibold hover:underline">
+              สมัครสมาชิก
+            </Link>
+          </p>
+        )}
       </div>
     </div>
   );

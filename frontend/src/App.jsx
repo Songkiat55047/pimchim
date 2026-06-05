@@ -16,6 +16,7 @@ import Leaderboard from "./pages/shared/Leaderboard";
 import Announcements from "./pages/shared/Announcements";
 import Assignments from "./pages/shared/Assignments";
 import Setup from "./pages/Setup";
+import Signup from "./pages/Signup";
 
 function RequireAuth({ children, role }) {
   const { token, user, requirePasswordChange } = useAuthStore();
@@ -50,6 +51,7 @@ export default function App() {
         <Routes>
           {/* Setup — first-time only */}
           <Route path="/setup" element={<Setup />} />
+          <Route path="/signup" element={<Signup />} />
 
           {/* Public */}
           <Route path="/login" element={

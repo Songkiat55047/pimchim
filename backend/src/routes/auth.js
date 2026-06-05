@@ -105,6 +105,26 @@ router.get("/me", authenticate, async (req, res) => {
   }
 });
 
+// POST /api/auth/register — create a new teacher account (open registration)
+router.post("/register", async (req, res) => {
+  const { username, password, name } = req.body;
+  if (!username || !password || !name) {
+    return res.status(400).json({ message: "username, password, name required" });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ message: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" });
+  }
+  try {
+    const passwordHash = await bcrypt.hash(password, 10);
+    await prisma.user.create({ data: { username, passwordHash, name, role: "TEACHER" } });
+    res.status(201).json({ message: "สมัครสมาชิกสำเร็จ" });
+  } catch (err) {
+    if (err.code === "P2002") return res.status(409).json({ message: "Username นี้ถูกใช้แล้ว" });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // POST /api/auth/setup — create first teacher account (blocked if any user already exists)
 router.post("/setup", async (req, res) => {
   const { username, password, name } = req.body;
