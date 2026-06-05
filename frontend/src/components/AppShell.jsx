@@ -7,6 +7,7 @@ const TEACHER_NAV = [
   { to: "/teacher",              icon: "🏠", label: "หน้าหลัก"         },
   { to: "/teacher/students",     icon: "👥", label: "จัดการนักเรียน"   },
   { to: "/teacher/scores",       icon: "⭐", label: "ให้คะแนน"         },
+  { to: "/teacher/analytics",    icon: "📊", label: "วิเคราะห์ข้อมูล"  },
   { to: "/teacher/leaderboard",  icon: "🏆", label: "อันดับคะแนน"      },
   { to: "/teacher/announcements",icon: "📢", label: "ประกาศ"            },
   { to: "/teacher/assignments",  icon: "📝", label: "งานที่มอบหมาย"    },

@@ -17,6 +17,7 @@ import Announcements from "./pages/shared/Announcements";
 import Assignments from "./pages/shared/Assignments";
 import Setup from "./pages/Setup";
 import Signup from "./pages/Signup";
+import Analytics from "./pages/teacher/Analytics";
 
 function RequireAuth({ children, role }) {
   const { token, user, requirePasswordChange } = useAuthStore();
@@ -65,6 +66,7 @@ export default function App() {
           <Route path="/teacher" element={<TeacherLayout><TeacherDashboard /></TeacherLayout>} />
           <Route path="/teacher/students" element={<TeacherLayout><Students /></TeacherLayout>} />
           <Route path="/teacher/scores" element={<TeacherLayout><Scores /></TeacherLayout>} />
+          <Route path="/teacher/analytics" element={<TeacherLayout><Analytics /></TeacherLayout>} />
           <Route path="/teacher/leaderboard" element={<TeacherLayout><Leaderboard /></TeacherLayout>} />
           <Route path="/teacher/announcements" element={<TeacherLayout><Announcements /></TeacherLayout>} />
           <Route path="/teacher/assignments" element={<TeacherLayout><Assignments /></TeacherLayout>} />
