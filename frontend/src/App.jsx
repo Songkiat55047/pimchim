@@ -15,6 +15,7 @@ import StudentScores from "./pages/student/Scores";
 import Leaderboard from "./pages/shared/Leaderboard";
 import Announcements from "./pages/shared/Announcements";
 import Assignments from "./pages/shared/Assignments";
+import Setup from "./pages/Setup";
 
 function RequireAuth({ children, role }) {
   const { token, user, requirePasswordChange } = useAuthStore();
@@ -47,6 +48,9 @@ export default function App() {
     <ToastProvider>
       <BrowserRouter>
         <Routes>
+          {/* Setup — first-time only */}
+          <Route path="/setup" element={<Setup />} />
+
           {/* Public */}
           <Route path="/login" element={
             token && user
