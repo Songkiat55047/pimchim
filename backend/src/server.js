@@ -23,6 +23,9 @@ app.use("/api/students", studentRoutes);
 app.use("/api/scores", scoreRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/api/assignments", assignmentRoutes);
+// server.js — เพิ่มหลัง app.use(express.json())
+const path = require("path");
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Global error handler
 app.use((err, req, res, next) => {

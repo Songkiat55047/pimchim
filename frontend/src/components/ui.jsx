@@ -47,7 +47,7 @@ export function Modal({ open, onClose, title, children, footer }) {
   return (
     <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        {title && <h3 className="font-[Nunito] font-extrabold text-lg text-green-900 mb-4">{title}</h3>}
+        {title && <h3 className="font-serif font-extrabold text-lg text-green-900 mb-4">{title}</h3>}
         {children}
         {footer && <div className="flex gap-2 justify-end mt-4">{footer}</div>}
       </div>
@@ -88,4 +88,81 @@ export function Empty({ icon = "📭", text = "ไม่มีข้อมูล
 // ──────────────── CONFIRM DIALOG ────────────────
 export function useConfirm() {
   return (msg) => window.confirm(msg);
+}
+
+// ──────────────── CLASS GROUPING / TABS ────────────────
+export function useClassGroups(items, classKey = "class") {
+  const groups = items.reduce((acc, it) => {
+    const key = it[classKey] || "ไม่ระบุห้อง";
+    (acc[key] ||= []).push(it);
+    return acc;
+  }, {});
+  const classNames = Object.keys(groups).sort((a, b) => a.localeCompare(b, "th", { numeric: true }));
+  return { groups, classNames };
+}
+
+export function ClassTabs({ classNames, groups, active, onChange, total }) {
+  if (!classNames.length) return null;
+  return (
+    <div className="flex flex-wrap gap-2 mb-4">
+      <button onClick={() => onChange("all")} className={active === "all" ? "btn-primary btn-sm" : "btn-secondary btn-sm"}>
+        ทั้งหมด <span className="opacity-75">({total})</span>
+      </button>
+      {classNames.map((cls) => (
+        <button key={cls} onClick={() => onChange(cls)} className={active === cls ? "btn-primary btn-sm" : "btn-secondary btn-sm"}>
+          🏫 {cls} <span className="opacity-75">({groups[cls].length})</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ──────────────── PAGINATION ────────────────
+const PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50];
+
+export function usePagination(total, resetKey) {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
+
+  useEffect(() => { setPage(1); }, [resetKey, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const clampedPage = Math.min(page, totalPages);
+  const start = (clampedPage - 1) * pageSize;
+
+  return { page: clampedPage, setPage, pageSize, setPageSize, totalPages, start };
+}
+
+export function Pagination({ page, totalPages, pageSize, onPageChange, onPageSizeChange, total }) {
+  if (total === 0) return null;
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(total, page * pageSize);
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-green-100 text-sm">
+      <div className="flex items-center gap-2 text-green-600">
+        <span>แสดง</span>
+        <select
+          className="border-2 border-green-100 rounded-lg px-2 py-1 text-sm bg-white"
+          value={pageSize}
+          onChange={(e) => onPageSizeChange(Number(e.target.value))}
+        >
+          {PAGE_SIZE_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
+        </select>
+        <span>แถว</span>
+        <span className="text-green-400 whitespace-nowrap">· {start}-{end} จาก {total}</span>
+      </div>
+      <div className="flex items-center gap-1 flex-wrap">
+        <button className="btn-secondary btn-sm" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>← ก่อนหน้า</button>
+        {totalPages <= 7
+          ? Array.from({ length: totalPages }).map((_, i) => (
+              <button key={i} onClick={() => onPageChange(i + 1)} className={page === i + 1 ? "btn-primary btn-sm" : "btn-secondary btn-sm"}>
+                {i + 1}
+              </button>
+            ))
+          : <span className="px-2 text-green-600">หน้า {page} / {totalPages}</span>}
+        <button className="btn-secondary btn-sm" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>ถัดไป →</button>
+      </div>
+    </div>
+  );
 }

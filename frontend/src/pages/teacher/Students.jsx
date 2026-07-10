@@ -2,12 +2,13 @@
 import { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
 import api from "../../api/axios";
-import { Modal, useToast, Empty, Spinner } from "../../components/ui";
+import { Modal, useToast, Empty, Spinner, useClassGroups, ClassTabs, usePagination, Pagination } from "../../components/ui";
 
 export default function Students() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [activeClass, setActiveClass] = useState("all");
   const [modal, setModal] = useState(null); // "add" | "edit" | "import"
   const [editTarget, setEditTarget] = useState(null);
   const [form, setForm] = useState({ id: "", name: "", class: "" });
@@ -25,6 +26,19 @@ export default function Students() {
   };
 
   useEffect(() => { fetchStudents(); }, [search]);
+
+  // ── GROUP BY CLASS ──
+  const { groups, classNames } = useClassGroups(students);
+  const visibleClassNames = activeClass === "all" ? classNames : classNames.filter((c) => c === activeClass);
+
+  useEffect(() => {
+    if (activeClass !== "all" && !classNames.includes(activeClass)) setActiveClass("all");
+  }, [classNames.join("|")]);
+
+  const isAllView = activeClass === "all";
+  const activeGroupStudents = isAllView ? [] : (groups[activeClass] || []);
+  const pagination = usePagination(activeGroupStudents.length, activeClass);
+  const pagedStudents = isAllView ? [] : activeGroupStudents.slice(pagination.start, pagination.start + pagination.pageSize);
 
   // ── ADD ──
   const openAdd = () => { setForm({ id: "", name: "", class: "" }); setModal("add"); };
@@ -106,7 +120,7 @@ export default function Students() {
 
   return (
     <div>
-      <h1 className="font-[Nunito] font-black text-2xl text-green-900 mb-4">👥 จัดการนักเรียน</h1>
+      <h1 className="font-serif font-black text-2xl text-green-900 mb-4">👥 จัดการนักเรียน</h1>
 
       {/* Toolbar */}
       <div className="flex flex-wrap gap-2 mb-4">
@@ -119,45 +133,70 @@ export default function Students() {
         <button onClick={downloadTemplate} className="btn-secondary btn-sm">⬇ Template</button>
       </div>
 
-      {/* Table */}
-      <div className="card p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-green-50 text-green-800 font-bold">
-              <tr>
-                {["#", "รหัส", "ชื่อ", "ชั้น", "คะแนน", "Level", "รหัสผ่าน", "จัดการ"].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={8}><div className="flex justify-center py-8"><Spinner /></div></td></tr>
-              ) : !students.length ? (
-                <tr><td colSpan={8}><Empty icon="👥" text="ยังไม่มีนักเรียน" /></td></tr>
-              ) : students.map((s, i) => (
-                <tr key={s.id} className="border-t border-green-50 hover:bg-green-50/50">
-                  <td className="px-4 py-3 text-green-400">{i + 1}</td>
-                  <td className="px-4 py-3"><span className="badge-blue">{s.id}</span></td>
-                  <td className="px-4 py-3 font-semibold">{s.name}</td>
-                  <td className="px-4 py-3 text-green-600">{s.class}</td>
-                  <td className="px-4 py-3 font-[Nunito] font-black text-green-700 text-lg">{s.score.toLocaleString()}</td>
-                  <td className="px-4 py-3"><span className="badge-green">Lv.{s.level}</span></td>
-                  <td className="px-4 py-3">
-                    <span className={s.passwordChanged ? "badge-green" : "badge-yellow"}>
-                      {s.passwordChanged ? "✅ เปลี่ยนแล้ว" : "⏳ ค่าเริ่มต้น"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 flex gap-1">
-                    <button onClick={() => openEdit(s)} className="btn-secondary btn-sm">✏️</button>
-                    <button onClick={() => handleDelete(s.id)} className="btn-danger btn-sm">🗑</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Class tabs */}
+      {!loading && students.length > 0 && (
+        <ClassTabs classNames={classNames} groups={groups} active={activeClass} onChange={setActiveClass} total={students.length} />
+      )}
+
+      {/* Tables grouped by class */}
+      {loading ? (
+        <div className="card flex justify-center py-8"><Spinner /></div>
+      ) : !students.length ? (
+        <div className="card"><Empty icon="👥" text="ยังไม่มีนักเรียน" /></div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {visibleClassNames.map((cls) => (
+            <div key={cls} className="card p-0 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 bg-green-50 border-b-2 border-green-100">
+                <span className="text-lg">🏫</span>
+                <span className="font-serif font-black text-green-900">{cls}</span>
+                <span className="badge-green">{groups[cls].length} คน</span>
+              </div>
+              <div className={isAllView ? "overflow-auto max-h-[420px]" : "overflow-x-auto"}>
+                <table className="w-full text-sm">
+                  <thead className={`bg-green-50/60 text-green-800 font-bold ${isAllView ? "sticky top-0 z-10" : ""}`}>
+                    <tr>
+                      {["#", "รหัส", "ชื่อ", "คะแนน", "Level", "รหัสผ่าน", "จัดการ"].map((h) => (
+                        <th key={h} className="px-4 py-2.5 text-left whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(isAllView ? groups[cls] : pagedStudents).map((s, i) => (
+                      <tr key={s.id} className="border-t border-green-50 hover:bg-green-50/50">
+                        <td className="px-4 py-3 text-green-400">{isAllView ? i + 1 : pagination.start + i + 1}</td>
+                        <td className="px-4 py-3"><span className="badge-blue">{s.id}</span></td>
+                        <td className="px-4 py-3 font-semibold">{s.name}</td>
+                        <td className="px-4 py-3 font-serif font-black text-green-700 text-lg">{s.score.toLocaleString()}</td>
+                        <td className="px-4 py-3"><span className="badge-green">Lv.{s.level}</span></td>
+                        <td className="px-4 py-3">
+                          <span className={s.passwordChanged ? "badge-green" : "badge-yellow"}>
+                            {s.passwordChanged ? "✅ เปลี่ยนแล้ว" : "⏳ ค่าเริ่มต้น"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 flex gap-1">
+                          <button onClick={() => openEdit(s)} className="btn-secondary btn-sm">✏️</button>
+                          <button onClick={() => handleDelete(s.id)} className="btn-danger btn-sm">🗑</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {!isAllView && (
+                <Pagination
+                  page={pagination.page}
+                  totalPages={pagination.totalPages}
+                  pageSize={pagination.pageSize}
+                  onPageChange={pagination.setPage}
+                  onPageSizeChange={pagination.setPageSize}
+                  total={activeGroupStudents.length}
+                />
+              )}
+            </div>
+          ))}
         </div>
-      </div>
+      )}
 
       {/* Modal: Add */}
       <Modal open={modal === "add"} onClose={() => setModal(null)} title="➕ เพิ่มนักเรียน"

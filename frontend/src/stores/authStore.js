@@ -1,11 +1,9 @@
 // src/stores/authStore.js
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import axios from "axios";
 
-const MOCK_USERS = {
-  teacher: { id: "T001", name: "อาจารย์สมศรี ใจดี", role: "TEACHER" },
-  student: { id: "STD001", name: "น้องพิมพ์", role: "STUDENT", class: "ม.5/1" },
-};
+const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const useAuthStore = create(
   persist(
@@ -15,36 +13,37 @@ const useAuthStore = create(
       requirePasswordChange: false,
 
       login: async (username, password, role) => {
-        // Mock login — ไม่ต้องการ backend
-        await new Promise((r) => setTimeout(r, 400)); // simulate delay
-        if (role === "teacher" && username === "teacher01" && password === "1234") {
-          const user = MOCK_USERS.teacher;
-          set({ token: "mock-token-teacher", user, requirePasswordChange: false });
-          return { token: "mock-token-teacher", user, requirePasswordChange: false };
-        }
-        if (role === "student" && username.toUpperCase() === "STD001") {
-          const user = MOCK_USERS.student;
-          const isFirstLogin = password === "STD001";
-          set({ token: "mock-token-student", user, requirePasswordChange: isFirstLogin });
-          return { token: "mock-token-student", user, requirePasswordChange: isFirstLogin };
-        }
-        throw { response: { data: { message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" } } };
+        const res = await axios.post(`${API}/api/auth/login`, { username, password, role });
+        const { token, user, requirePasswordChange } = res.data;
+        set({ token, user, requirePasswordChange: requirePasswordChange ?? false });
+        return res.data;
       },
 
       changePassword: async (newPassword) => {
-        await new Promise((r) => setTimeout(r, 300));
+        const { token } = get();
+        await axios.post(
+          `${API}/api/auth/change-password`,
+          { newPassword },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
         set({ requirePasswordChange: false });
       },
 
       logout: () => {
-        localStorage.removeItem("token");
         set({ token: null, user: null, requirePasswordChange: false });
+      },
+
+      updateUser: (patch) => {
+        set((s) => ({ user: { ...s.user, ...patch } }));
       },
 
       isTeacher: () => get().user?.role === "TEACHER",
       isStudent: () => get().user?.role === "STUDENT",
     }),
-    { name: "pimchim-auth", partialize: (s) => ({ token: s.token, user: s.user }) }
+    {
+      name: "pimchim-auth",
+      partialize: (s) => ({ token: s.token, user: s.user, requirePasswordChange: s.requirePasswordChange }),
+    }
   )
 );
 

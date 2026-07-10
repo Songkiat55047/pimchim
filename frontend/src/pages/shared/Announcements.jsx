@@ -44,7 +44,7 @@ export default function Announcements() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="font-[Nunito] font-black text-2xl text-green-900">📢 ประกาศ</h1>
+        <h1 className="font-serif font-black text-2xl text-green-900">📢 ประกาศ</h1>
         {isT && <button onClick={() => setModal(true)} className="btn-primary btn-sm">📢 เพิ่มประกาศ</button>}
       </div>
 

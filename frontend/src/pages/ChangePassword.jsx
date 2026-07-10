@@ -33,7 +33,7 @@ export default function ChangePassword() {
       <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl border-2 border-green-100">
         <div className="text-center mb-6">
           <div className="text-4xl mb-2">🔒</div>
-          <h2 className="font-[Nunito] font-black text-xl text-green-900">ตั้งรหัสผ่านใหม่</h2>
+          <h2 className="font-serif font-black text-xl text-green-900">ตั้งรหัสผ่านใหม่</h2>
           <p className="text-green-500 text-sm mt-1">เพื่อความปลอดภัย กรุณาเปลี่ยนรหัสผ่านก่อนใช้งาน</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">

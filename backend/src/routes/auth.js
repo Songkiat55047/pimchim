@@ -2,10 +2,36 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 const { PrismaClient } = require("@prisma/client");
-const { authenticate } = require("../middleware/auth");
+const { authenticate, teacherOnly } = require("../middleware/auth");
 
 const prisma = new PrismaClient();
+
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, "../uploads/avatars");
+    fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `teacher-${req.user.id}${ext}`);
+  },
+});
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith("image/")) {
+      return cb(new Error("รองรับเฉพาะไฟล์รูปภาพ"));
+    }
+    cb(null, true);
+  },
+});
 
 function signToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -91,16 +117,52 @@ router.get("/me", authenticate, async (req, res) => {
     if (req.user.role === "TEACHER") {
       const user = await prisma.user.findUnique({
         where: { id: req.user.id },
-        select: { id: true, username: true, name: true, role: true },
+        select: { id: true, username: true, name: true, role: true, avatarUrl: true, createdAt: true },
       });
       return res.json(user);
     }
     const student = await prisma.student.findUnique({
       where: { id: req.user.id },
-      select: { id: true, name: true, class: true, score: true, level: true, passwordChanged: true },
+      select: { id: true, name: true, class: true, score: true, level: true, passwordChanged: true, avatarUrl: true, createdAt: true },
     });
     return res.json({ ...student, role: "STUDENT" });
   } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// PATCH /api/auth/profile  (teacher only) — update display name
+// Body: { name }
+router.patch("/profile", authenticate, teacherOnly, async (req, res) => {
+  const { name } = req.body;
+  if (!name || !name.trim()) {
+    return res.status(400).json({ message: "กรุณากรอกชื่อ" });
+  }
+  try {
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { name: name.trim() },
+      select: { id: true, username: true, name: true, role: true, avatarUrl: true, createdAt: true },
+    });
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// POST /api/auth/avatar  (teacher only) — upload profile picture
+router.post("/avatar", authenticate, teacherOnly, avatarUpload.single("avatar"), async (req, res) => {
+  if (!req.file) return res.status(400).json({ message: "กรุณาแนบไฟล์รูป" });
+  try {
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: { avatarUrl },
+    });
+    res.json({ avatarUrl });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
