@@ -98,7 +98,7 @@ export default function LandingPage() {
           ))}
         </div>
 
-        <p style={{ fontFamily: "'Mitr', sans-serif", fontSize: 11, color: "#cbd7a8", marginTop: 36 }}>© 2025 PimChim+</p>
+        <p style={{ fontFamily: "'Mitr', sans-serif", fontSize: 11, color: "#cbd7a8", marginTop: 36 }}>© 2026 PimChim+</p>
       </div>
     </div>
   );
