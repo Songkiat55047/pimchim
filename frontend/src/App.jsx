@@ -118,6 +118,7 @@ import Leaderboard from "./pages/shared/Leaderboard";
 import Announcements from "./pages/shared/Announcements";
 import Assignments from "./pages/shared/Assignments";
 import Analytics from "./pages/teacher/Analytics";
+import Setup from "./pages/Setup";
 import StudentDashboard from "./pages/student/Dashboard"; // dashboard ใหม่ มี nav ในตัว
 
 function RequireAuth({ children, role }) {
@@ -161,6 +162,7 @@ export default function App() {
           <Route path="/login/teacher" element={<AuthGuard><TeacherLogin /></AuthGuard>} />
           <Route path="/login/student" element={<AuthGuard><StudentLogin /></AuthGuard>} />
           <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route path="/setup" element={<Setup />} />
           <Route path="/change-password" element={<ChangePassword />} />
 
           {/* Teacher routes — ยังใช้ AppShell เหมือนเดิม */}
