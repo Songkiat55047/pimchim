@@ -1,9 +1,8 @@
-// src/stores/authStore.js
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import axios from "axios";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/api\/?$/, "");
 
 const useAuthStore = create(
   persist(

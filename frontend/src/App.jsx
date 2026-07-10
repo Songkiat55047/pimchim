@@ -117,6 +117,7 @@ import Scores from "./pages/teacher/Scores";
 import Leaderboard from "./pages/shared/Leaderboard";
 import Announcements from "./pages/shared/Announcements";
 import Assignments from "./pages/shared/Assignments";
+import Analytics from "./pages/teacher/Analytics";
 import StudentDashboard from "./pages/student/Dashboard"; // dashboard ใหม่ มี nav ในตัว
 
 function RequireAuth({ children, role }) {
@@ -167,6 +168,7 @@ export default function App() {
           <Route path="/teacher/profile" element={<TeacherLayout><TeacherProfile /></TeacherLayout>} />
           <Route path="/teacher/students" element={<TeacherLayout><Students /></TeacherLayout>} />
           <Route path="/teacher/scores" element={<TeacherLayout><Scores /></TeacherLayout>} />
+          <Route path="/teacher/analytics" element={<TeacherLayout><Analytics /></TeacherLayout>} />
           <Route path="/teacher/leaderboard" element={<TeacherLayout><Leaderboard /></TeacherLayout>} />
           <Route path="/teacher/announcements" element={<TeacherLayout><Announcements /></TeacherLayout>} />
           <Route path="/teacher/assignments" element={<TeacherLayout><Assignments /></TeacherLayout>} />
