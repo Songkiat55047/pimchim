@@ -3,26 +3,28 @@ import { useState } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import useAuthStore from "../stores/authStore";
 import { BASE_URL } from "../api/axios";
+import useT from "../i18n/useT";
+import LanguageToggle from "./LanguageToggle";
 
 const NAV = [
-  { to: "/teacher",               tab: "home",          label: "หน้าหลัก" },
-  { to: "/teacher/students",      tab: "students",      label: "จัดการนักเรียน" },
-  { to: "/teacher/scores",        tab: "scores",        label: "ให้คะแนน" },
-  { to: "/teacher/analytics",     tab: "analytics",     label: "วิเคราะห์ข้อมูล" },
-  { to: "/teacher/leaderboard",   tab: "leaderboard",   label: "อันดับคะแนน" },
-  { to: "/teacher/announcements", tab: "announcements", label: "ประกาศ" },
-  { to: "/teacher/assignments",   tab: "assignments",   label: "งานที่มอบหมาย" },
+  { to: "/teacher",               tab: "home" },
+  { to: "/teacher/students",      tab: "students" },
+  { to: "/teacher/scores",        tab: "scores" },
+  { to: "/teacher/analytics",     tab: "analytics" },
+  { to: "/teacher/leaderboard",   tab: "leaderboard" },
+  { to: "/teacher/announcements", tab: "announcements" },
+  { to: "/teacher/assignments",   tab: "assignments" },
 ];
 
-const PAGE_TITLES = {
-  "/teacher": "หน้าหลัก",
-  "/teacher/students": "จัดการนักเรียน",
-  "/teacher/scores": "ให้คะแนน",
-  "/teacher/analytics": "วิเคราะห์ข้อมูล",
-  "/teacher/leaderboard": "อันดับคะแนน",
-  "/teacher/announcements": "ประกาศ",
-  "/teacher/assignments": "งานที่มอบหมาย",
-  "/teacher/profile": "โปรไฟล์ของฉัน",
+const PAGE_TITLE_KEYS = {
+  "/teacher": "home",
+  "/teacher/students": "students",
+  "/teacher/scores": "scores",
+  "/teacher/analytics": "analytics",
+  "/teacher/leaderboard": "leaderboard",
+  "/teacher/announcements": "announcements",
+  "/teacher/assignments": "assignments",
+  "/teacher/profile": "profile",
 };
 
 const NavIcon = ({ tab }) => {
@@ -45,6 +47,8 @@ export default function AppShell({ children }) {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const t = useT("appShell");
+  const tc = useT("common");
 
   function handleLogout() {
     logout();
@@ -52,7 +56,8 @@ export default function AppShell({ children }) {
   }
 
   const isActive = (to) => (to === "/teacher" ? location.pathname === "/teacher" : location.pathname.startsWith(to));
-  const pageTitle = PAGE_TITLES[location.pathname] || "PimChim+";
+  const pageTitleKey = PAGE_TITLE_KEYS[location.pathname];
+  const pageTitle = pageTitleKey ? t(pageTitleKey) : "PimChim+";
 
   const Sidebar = () => (
     <div style={{ display: "flex", flexDirection: "column", background: "#333f1e", padding: "24px 16px", gap: 4, height: "100%", overflowY: "auto" }}>
@@ -72,7 +77,7 @@ export default function AppShell({ children }) {
         </div>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 600, fontSize: 13, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user?.name}</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)" }}>ครู / แอดมิน</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)" }}>{tc("roleLabel")}</div>
         </div>
       </NavLink>
 
@@ -93,7 +98,7 @@ export default function AppShell({ children }) {
               }}
             >
               <span style={{ display: "flex", opacity: active ? 1 : 0.85 }}><NavIcon tab={item.tab} /></span>
-              {item.label}
+              {t(item.tab)}
             </NavLink>
           );
         })}
@@ -101,10 +106,10 @@ export default function AppShell({ children }) {
 
       <button
         onClick={handleLogout}
-        style={{ width: "100%", padding: "11px 16px", borderRadius: 12, border: "1.5px solid rgba(255,255,255,0.2)", background: "none", fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, marginTop: 16 }}
+        style={{ width: "100%", padding: "11px 16px", borderRadius: 12, border: "1.5px solid rgba(255,255,255,0.2)", background: "none", fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}
       >
         <NavIcon tab="logout" />
-        ออกจากระบบ
+        {t("logout")}
       </button>
     </div>
   );
@@ -135,17 +140,21 @@ export default function AppShell({ children }) {
         >
           <button onClick={() => setOpen(true)} style={{ background: "none", border: "none", color: "#333f1e", fontSize: 20, padding: 0, cursor: "pointer" }}>☰</button>
           <div style={{ fontSize: 14, fontWeight: 600, color: "#232a15" }}>{pageTitle}</div>
-          <NavLink to="/teacher/profile" style={{ width: 32, height: 32, borderRadius: "50%", background: "#e5ead2", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
-            {user?.avatarUrl
-              ? <img src={`${BASE_URL}${user.avatarUrl}`} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              : "👨‍🏫"}
-          </NavLink>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <LanguageToggle style={{ fontSize: 11, padding: "4px 10px" }} />
+            <NavLink to="/teacher/profile" style={{ width: 32, height: 32, borderRadius: "50%", background: "#e5ead2", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
+              {user?.avatarUrl
+                ? <img src={`${BASE_URL}${user.avatarUrl}`} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : "👨‍🏫"}
+            </NavLink>
+          </div>
         </header>
 
         {/* Desktop topbar */}
         <header className="hidden lg:flex bg-white border-b-2 border-green-100 px-6 h-14 items-center gap-3 sticky top-0 z-20">
-          <div className="font-serif font-extrabold text-green-900">{pageTitle}</div>
+          <div className="font-serif font-bold text-green-900">{pageTitle}</div>
           <div className="flex-1" />
+          <LanguageToggle style={{ fontSize: 12, padding: "5px 12px" }} />
           <NavLink to="/teacher" className="relative text-green-700">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           </NavLink>

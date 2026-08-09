@@ -5,13 +5,14 @@ import {
   PieChart, Pie, Cell, Legend,
   LineChart, Line,
 } from "recharts";
+import useT from "../../i18n/useT";
 
 const COLORS = ["#4ade80", "#60a5fa", "#f472b6", "#fb923c", "#a78bfa", "#34d399", "#facc15"];
 
 function Card({ title, children }) {
   return (
     <div className="card">
-      <h3 className="font-[Nunito] font-bold text-green-800 mb-4">{title}</h3>
+      <h3 className="font-serif font-bold text-green-800 mb-4">{title}</h3>
       {children}
     </div>
   );
@@ -21,6 +22,7 @@ export default function Analytics() {
   const [students, setStudents] = useState([]);
   const [scoreLogs, setScoreLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const t = useT("analytics");
 
   useEffect(() => {
     Promise.all([
@@ -31,8 +33,8 @@ export default function Analytics() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-green-400 text-center py-20">กำลังโหลด...</div>;
-  if (!students.length) return <div className="text-green-400 text-center py-20">ยังไม่มีข้อมูลนักเรียน</div>;
+  if (loading) return <div className="text-green-400 text-center py-20">{t("loading")}</div>;
+  if (!students.length) return <div className="text-green-400 text-center py-20">{t("noStudents")}</div>;
 
   // ── Score Distribution ──
   const ranges = [
@@ -44,7 +46,7 @@ export default function Analytics() {
   ];
   const scoreDistData = ranges.map(r => ({
     range: r.range,
-    นักเรียน: students.filter(s => s.score >= r.min && s.score <= r.max).length,
+    count: students.filter(s => s.score >= r.min && s.score <= r.max).length,
   }));
 
   // ── Level Distribution ──
@@ -67,23 +69,23 @@ export default function Analytics() {
   const classData = Object.entries(classMap)
     .map(([cls, v]) => ({
       class: cls,
-      เฉลี่ย: Math.round(v.total / v.count),
-      นักเรียน: v.count,
+      avg: Math.round(v.total / v.count),
+      count: v.count,
     }))
-    .sort((a, b) => b.เฉลี่ย - a.เฉลี่ย);
+    .sort((a, b) => b.avg - a.avg);
 
   // ── Top 10 Students ──
   const top10 = students.slice(0, 10).map(s => ({
     name: s.name.length > 12 ? s.name.slice(0, 12) + "…" : s.name,
-    คะแนน: s.score,
+    score: s.score,
   }));
 
   // ── Password Change Status ──
   const changed = students.filter(s => s.passwordChanged).length;
   const notChanged = students.length - changed;
   const pwData = [
-    { name: "เปลี่ยนแล้ว", value: changed },
-    { name: "ยังไม่เปลี่ยน", value: notChanged },
+    { name: t("pwChanged"), value: changed },
+    { name: t("pwNotChanged"), value: notChanged },
   ];
 
   const avg = Math.round(students.reduce((a, s) => a + s.score, 0) / students.length);
@@ -93,19 +95,19 @@ export default function Analytics() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-[Nunito] font-black text-2xl text-green-900 mb-1">วิเคราะห์ข้อมูล</h1>
-        <p className="text-green-500 text-sm">ภาพรวมสถิติและกราฟของนักเรียนทั้งหมด</p>
+        <h1 className="font-serif font-bold text-2xl text-green-900 mb-1">{t("title")}</h1>
+        <p className="text-green-500 text-sm">{t("subtitle")}</p>
       </div>
 
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "คะแนนเฉลี่ย", value: avg.toLocaleString(), color: "text-blue-600" },
-          { label: "คะแนนสูงสุด", value: maxScore.toLocaleString(), color: "text-green-600" },
-          { label: "คะแนนต่ำสุด", value: minScore.toLocaleString(), color: "text-orange-500" },
+          { label: t("avgScore"), value: avg.toLocaleString(), color: "text-blue-600" },
+          { label: t("maxScore"), value: maxScore.toLocaleString(), color: "text-green-600" },
+          { label: t("minScore"), value: minScore.toLocaleString(), color: "text-orange-500" },
         ].map(s => (
           <div key={s.label} className="card text-center">
-            <div className={`font-[Nunito] font-black text-2xl ${s.color}`}>{s.value}</div>
+            <div className={`font-serif font-bold text-2xl ${s.color}`}>{s.value}</div>
             <div className="text-xs text-gray-400 mt-0.5">{s.label}</div>
           </div>
         ))}
@@ -113,19 +115,19 @@ export default function Analytics() {
 
       {/* Row 1: Score distribution + Level pie */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card title="📊 การกระจายตัวของคะแนน">
+        <Card title={t("cardScoreDist")}>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={scoreDistData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0fdf4" />
               <XAxis dataKey="range" tick={{ fontSize: 11 }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
               <Tooltip />
-              <Bar dataKey="นักเรียน" fill="#4ade80" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="count" name={t("studentsSeries")} fill="#4ade80" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
 
-        <Card title="🎯 สัดส่วนระดับนักเรียน">
+        <Card title={t("cardLevelPie")}>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie data={levelData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
@@ -140,26 +142,26 @@ export default function Analytics() {
 
       {/* Row 2: Class performance + Top 10 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card title="🏫 คะแนนเฉลี่ยตามห้องเรียน">
+        <Card title={t("cardClassAvg")}>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={classData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="#f0fdf4" />
               <XAxis type="number" tick={{ fontSize: 11 }} />
               <YAxis dataKey="class" type="category" tick={{ fontSize: 11 }} width={60} />
               <Tooltip />
-              <Bar dataKey="เฉลี่ย" fill="#60a5fa" radius={[0, 6, 6, 0]} />
+              <Bar dataKey="avg" name={t("avgSeries")} fill="#60a5fa" radius={[0, 6, 6, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
 
-        <Card title="🏆 Top 10 นักเรียน">
+        <Card title={t("cardTop10")}>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={top10} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="#f0fdf4" />
               <XAxis type="number" tick={{ fontSize: 11 }} />
               <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={90} />
               <Tooltip />
-              <Bar dataKey="คะแนน" fill="#a78bfa" radius={[0, 6, 6, 0]} />
+              <Bar dataKey="score" name={t("scoreSeries")} fill="#a78bfa" radius={[0, 6, 6, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -167,7 +169,7 @@ export default function Analytics() {
 
       {/* Row 3: Password change status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card title="🔐 สถานะการเปลี่ยนรหัสผ่าน">
+        <Card title={t("cardPwStatus")}>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie data={pwData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" label={({ name, value }) => `${name} (${value})`}>
@@ -180,13 +182,13 @@ export default function Analytics() {
           </ResponsiveContainer>
         </Card>
 
-        <Card title="📈 สรุปภาพรวม">
+        <Card title={t("cardSummary")}>
           <div className="space-y-3 mt-2">
             {[
-              { label: "นักเรียนทั้งหมด", value: students.length, color: "bg-green-100 text-green-700" },
-              { label: "จำนวนห้องเรียน", value: Object.keys(classMap).length, color: "bg-blue-100 text-blue-700" },
-              { label: "เปลี่ยนรหัสผ่านแล้ว", value: `${changed}/${students.length}`, color: "bg-purple-100 text-purple-700" },
-              { label: "นักเรียน Level 5+", value: students.filter(s => s.level >= 5).length, color: "bg-yellow-100 text-yellow-700" },
+              { label: t("totalStudents"), value: students.length, color: "bg-green-100 text-green-700" },
+              { label: t("totalClasses"), value: Object.keys(classMap).length, color: "bg-blue-100 text-blue-700" },
+              { label: t("pwChangedRatio"), value: `${changed}/${students.length}`, color: "bg-purple-100 text-purple-700" },
+              { label: t("level5Plus"), value: students.filter(s => s.level >= 5).length, color: "bg-yellow-100 text-yellow-700" },
             ].map(item => (
               <div key={item.label} className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">{item.label}</span>

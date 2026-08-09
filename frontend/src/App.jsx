@@ -109,6 +109,7 @@ import useAuthStore from "./stores/authStore";
 import LandingPage from "./pages/LandingPage";
 import TeacherLogin from "./pages/TeacherLogin";
 import StudentLogin from "./pages/StudentLogin";
+import StudentSignup from "./pages/StudentSignup";
 import ChangePassword from "./pages/ChangePassword";
 import TeacherDashboard from "./pages/teacher/Dashboard";
 import TeacherProfile from "./pages/teacher/Profile";
@@ -161,6 +162,7 @@ export default function App() {
           {/* Auth */}
           <Route path="/login/teacher" element={<AuthGuard><TeacherLogin /></AuthGuard>} />
           <Route path="/login/student" element={<AuthGuard><StudentLogin /></AuthGuard>} />
+          <Route path="/signup/student" element={<AuthGuard><StudentSignup /></AuthGuard>} />
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="/setup" element={<Setup />} />
           <Route path="/change-password" element={<ChangePassword />} />

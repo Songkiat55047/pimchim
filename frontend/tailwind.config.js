@@ -17,7 +17,7 @@ export default {
         },
       },
       fontFamily: {
-        serif: ['"Noto Serif Thai"', "ui-serif", "serif"],
+        serif: ['"Mitr"', "sans-serif"],
       },
     },
   },

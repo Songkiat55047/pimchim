@@ -62,6 +62,7 @@ router.get("/", async (req, res) => {
     const students = await prisma.student.findMany({
       where: {
         AND: [
+          { status: "APPROVED" },
           search ? {
             OR: [
               { name: { contains: search, mode: "insensitive" } },
@@ -79,6 +80,36 @@ router.get("/", async (req, res) => {
     });
     res.json(students);
   } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// GET /api/students/pending — self-registered students awaiting approval
+router.get("/pending", async (req, res) => {
+  try {
+    const pending = await prisma.student.findMany({
+      where: { status: "PENDING" },
+      select: { id: true, name: true, class: true, createdAt: true },
+      orderBy: { createdAt: "asc" },
+    });
+    res.json(pending);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// POST /api/students/:id/approve
+router.post("/:id/approve", async (req, res) => {
+  try {
+    const student = await prisma.student.update({
+      where: { id: req.params.id },
+      data: { status: "APPROVED" },
+    });
+    res.json(student);
+  } catch (err) {
+    if (err.code === "P2025") return res.status(404).json({ message: "ไม่พบนักเรียน" });
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
@@ -174,6 +205,7 @@ router.post("/import", upload.single("file"), async (req, res) => {
 router.get("/leaderboard", async (req, res) => {
   try {
     const students = await prisma.student.findMany({
+      where: { status: "APPROVED" },
       select: { id: true, name: true, class: true, score: true, level: true },
       orderBy: { score: "desc" },
       take: 50,

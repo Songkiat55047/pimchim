@@ -1,5 +1,6 @@
 // src/components/ui.jsx
 import { useState, useEffect, createContext, useContext, useCallback } from "react";
+import useT from "../i18n/useT";
 
 // ──────────────── TOAST ────────────────
 const ToastCtx = createContext(null);
@@ -47,7 +48,7 @@ export function Modal({ open, onClose, title, children, footer }) {
   return (
     <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        {title && <h3 className="font-serif font-extrabold text-lg text-green-900 mb-4">{title}</h3>}
+        {title && <h3 className="font-serif font-bold text-lg text-green-900 mb-4">{title}</h3>}
         {children}
         {footer && <div className="flex gap-2 justify-end mt-4">{footer}</div>}
       </div>
@@ -64,23 +65,26 @@ export function Spinner({ size = "md" }) {
 }
 
 export function LoadingScreen() {
+  const t = useT("common");
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
         <div className="text-5xl mb-4 animate-bounce">🦕</div>
         <div className="font-[Nunito] font-black text-2xl text-green-800">PimChim<span className="text-pink-500">+</span></div>
-        <div className="text-green-600 text-sm mt-1">กำลังโหลด...</div>
+        <div className="text-green-600 text-sm mt-1">{t("loading")}</div>
       </div>
     </div>
   );
 }
 
 // ──────────────── EMPTY STATE ────────────────
-export function Empty({ icon = "📭", text = "ไม่มีข้อมูล" }) {
+export function Empty({ icon = "📭", text }) {
+  const t = useT("common");
+  const displayText = text ?? t("noData");
   return (
     <div className="text-center py-12 text-green-400">
       <div className="text-4xl mb-2">{icon}</div>
-      <div className="text-sm">{text}</div>
+      <div className="text-sm">{displayText}</div>
     </div>
   );
 }
@@ -92,8 +96,9 @@ export function useConfirm() {
 
 // ──────────────── CLASS GROUPING / TABS ────────────────
 export function useClassGroups(items, classKey = "class") {
+  const t = useT("common");
   const groups = items.reduce((acc, it) => {
-    const key = it[classKey] || "ไม่ระบุห้อง";
+    const key = it[classKey] || t("unclassified");
     (acc[key] ||= []).push(it);
     return acc;
   }, {});
@@ -102,11 +107,12 @@ export function useClassGroups(items, classKey = "class") {
 }
 
 export function ClassTabs({ classNames, groups, active, onChange, total }) {
+  const t = useT("common");
   if (!classNames.length) return null;
   return (
     <div className="flex flex-wrap gap-2 mb-4">
       <button onClick={() => onChange("all")} className={active === "all" ? "btn-primary btn-sm" : "btn-secondary btn-sm"}>
-        ทั้งหมด <span className="opacity-75">({total})</span>
+        {t("all")} <span className="opacity-75">({total})</span>
       </button>
       {classNames.map((cls) => (
         <button key={cls} onClick={() => onChange(cls)} className={active === cls ? "btn-primary btn-sm" : "btn-secondary btn-sm"}>
@@ -134,6 +140,7 @@ export function usePagination(total, resetKey) {
 }
 
 export function Pagination({ page, totalPages, pageSize, onPageChange, onPageSizeChange, total }) {
+  const t = useT("common");
   if (total === 0) return null;
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(total, page * pageSize);
@@ -141,7 +148,7 @@ export function Pagination({ page, totalPages, pageSize, onPageChange, onPageSiz
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-green-100 text-sm">
       <div className="flex items-center gap-2 text-green-600">
-        <span>แสดง</span>
+        <span>{t("show")}</span>
         <select
           className="border-2 border-green-100 rounded-lg px-2 py-1 text-sm bg-white"
           value={pageSize}
@@ -149,19 +156,19 @@ export function Pagination({ page, totalPages, pageSize, onPageChange, onPageSiz
         >
           {PAGE_SIZE_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
-        <span>แถว</span>
-        <span className="text-green-400 whitespace-nowrap">· {start}-{end} จาก {total}</span>
+        <span>{t("rows")}</span>
+        <span className="text-green-400 whitespace-nowrap">· {start}-{end} {t("of")} {total}</span>
       </div>
       <div className="flex items-center gap-1 flex-wrap">
-        <button className="btn-secondary btn-sm" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>← ก่อนหน้า</button>
+        <button className="btn-secondary btn-sm" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>{t("prev")}</button>
         {totalPages <= 7
           ? Array.from({ length: totalPages }).map((_, i) => (
               <button key={i} onClick={() => onPageChange(i + 1)} className={page === i + 1 ? "btn-primary btn-sm" : "btn-secondary btn-sm"}>
                 {i + 1}
               </button>
             ))
-          : <span className="px-2 text-green-600">หน้า {page} / {totalPages}</span>}
-        <button className="btn-secondary btn-sm" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>ถัดไป →</button>
+          : <span className="px-2 text-green-600">{t("pageOf", { page, total: totalPages })}</span>}
+        <button className="btn-secondary btn-sm" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>{t("next")}</button>
       </div>
     </div>
   );

@@ -1,17 +1,19 @@
 // src/pages/LandingPage.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useT from "../i18n/useT";
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const [hovered, setHovered] = useState(null);
+  const t = useT("landing");
 
   const cards = [
     {
       key: "teacher",
       path: "/login/teacher",
-      label: "ครู",
-      sub: "จัดการห้องเรียนและคะแนน",
+      label: t("teacherLabel"),
+      sub: t("teacherSub"),
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#333f1e" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -24,8 +26,8 @@ export default function LandingPage() {
     {
       key: "student",
       path: "/login/student",
-      label: "นักเรียน",
-      sub: "ดูคะแนนและความสำเร็จ",
+      label: t("studentLabel"),
+      sub: t("studentSub"),
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#333f1e" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
@@ -58,7 +60,9 @@ export default function LandingPage() {
         <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 20, color: "#232a15" }}>
           PimChim<span style={{ color: "#8ba656" }}>+</span>
         </div>
-        <div style={{ fontSize: 12, color: "#abbf7c" }}>ระบบสะสมแต้มห้องเรียน</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ fontSize: 12, color: "#abbf7c" }}>{t("tagline")}</div>
+        </div>
       </nav>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 24px 48px" }}>
@@ -70,11 +74,11 @@ export default function LandingPage() {
 
         {/* Headline */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <h1 style={{ fontFamily: "'Noto Serif Thai', serif", fontWeight: 700, fontSize: 32, color: "#232a15", lineHeight: 1.25, margin: 0 }}>
-            ยินดีต้อนรับ
+          <h1 style={{ fontFamily: "'Mitr', sans-serif", fontWeight: 700, fontSize: 32, color: "#232a15", lineHeight: 1.5, margin: 0 }}>
+            {t("title")}
           </h1>
           <p style={{ fontFamily: "'Mitr', sans-serif", fontWeight: 400, fontSize: 14, color: "#abbf7c", marginTop: 6 }}>
-            เลือกประเภทผู้ใช้เพื่อเข้าสู่ระบบ
+            {t("subtitle")}
           </p>
         </div>
 

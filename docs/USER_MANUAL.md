@@ -55,6 +55,10 @@ Additional teachers can register at:
 3. Enter username and password
 4. Click **เข้าสู่ระบบ**
 
+### 2.4 Language (TH / EN)
+
+Every page has an **EN / TH** toggle button (top-right on desktop, top bar on mobile). Click it to switch the entire interface between Thai and English at any time — your choice is remembered on the device.
+
 ---
 
 ## 3. Teacher / Admin Guide
@@ -91,6 +95,16 @@ The dashboard displays a summary of the system:
    - Column B: Full Name
    - Column C: Class
 3. Click **อัปโหลด**
+
+#### Approve Pending Registrations
+
+Students can also create their own account (see [4.1 Creating Your Account](#41-creating-your-account-self-registration)). New self-registered accounts cannot log in until a teacher approves them.
+
+1. Any pending requests appear in a **🕐 Pending Registrations** panel at the top of this page, showing Student ID, name, and class
+2. Click **✅ Approve** to activate the account — the student can now log in
+3. Click **✖ Reject** to permanently discard the request (e.g. duplicate or fake entry)
+
+> The panel is hidden automatically when there are no pending requests.
 
 #### Edit Student
 1. Click the **edit icon** next to a student
@@ -175,8 +189,25 @@ Displays top 50 students ranked by score. Shows rank, name, class, score, and le
 
 ## 4. Student Guide
 
-### 4.1 First Login — Password Change
-Students' default password is their Student ID (e.g. `STD001`).
+### 4.1 Creating Your Account (Self-Registration)
+**Path:** `/signup/student`
+
+If a teacher hasn't already added you, you can create your own account:
+
+1. From the student login page, click **ลงทะเบียนนักเรียนใหม่**
+2. Enter:
+   - **รหัสนักเรียน** — Student ID (choose your own, e.g. `STD010`)
+   - **ชื่อ-นามสกุล** — Full name
+   - **ห้องเรียน** — Class (e.g. `ม.5/1`)
+   - **รหัสผ่าน** — Password (minimum 6 characters), entered twice to confirm
+3. Click **ลงทะเบียน**
+
+> Your account is created as **pending** and cannot log in yet — a teacher must approve it first (see [3.2 Manage Students](#32-manage-students-จัดการนักเรียน)). If you try to log in before approval, you'll see "บัญชีของคุณกำลังรอครูอนุมัติ" (your account is awaiting teacher approval).
+
+---
+
+### 4.2 First Login — Password Change
+Students added directly by a teacher have their Student ID as the default password (e.g. `STD001`). This step doesn't apply if you self-registered — you already chose your own password.
 
 1. Log in with Student ID as both username and password
 2. System prompts **เปลี่ยนรหัสผ่าน**
@@ -187,7 +218,7 @@ Students' default password is their Student ID (e.g. `STD001`).
 
 ---
 
-### 4.2 Dashboard (หน้าหลัก)
+### 4.3 Dashboard (หน้าหลัก)
 **Path:** `/student`
 
 Displays:
@@ -197,7 +228,7 @@ Displays:
 
 ---
 
-### 4.3 My Scores (คะแนนของฉัน)
+### 4.4 My Scores (คะแนนของฉัน)
 **Path:** `/student/scores`
 
 Shows full score history including:
@@ -208,14 +239,14 @@ Shows full score history including:
 
 ---
 
-### 4.4 Leaderboard (อันดับ)
+### 4.5 Leaderboard (อันดับ)
 **Path:** `/student/leaderboard`
 
 Shows top 50 students ranked by score. Students can see where they rank among their peers.
 
 ---
 
-### 4.5 Announcements (ประกาศ)
+### 4.6 Announcements (ประกาศ)
 **Path:** `/student/announcements`
 
 - View all announcements from teachers
@@ -224,7 +255,7 @@ Shows top 50 students ranked by score. Students can see where they rank among th
 
 ---
 
-### 4.6 Assignments (งาน)
+### 4.7 Assignments (งาน)
 **Path:** `/student/assignments`
 
 - View all assignments with due dates
@@ -238,6 +269,7 @@ Shows top 50 students ranked by score. Students can see where they rank among th
 |---------|----------|
 | Cannot login | Check username spelling; password is case-sensitive |
 | "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" | Wrong username or password; use /setup if no account exists |
+| "บัญชีของคุณกำลังรอครูอนุมัติ" (student) | Self-registered account is still pending — ask your teacher to approve it under Manage Students |
 | Page loads slowly on first visit | Render backend is waking from sleep — wait 30–50 seconds |
 | Scores not saving | Check internet connection; try again |
 | Excel import fails | Ensure columns are: A=StudentID, B=Name, C=Class; no merged cells |

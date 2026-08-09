@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { Modal, useToast, Empty, Spinner } from "../../components/ui";
 import useAuthStore from "../../stores/authStore";
+import useT, { useLang } from "../../i18n/useT";
 
 export default function Announcements() {
   const [list, setList] = useState([]);
@@ -13,45 +14,48 @@ export default function Announcements() {
   const { isTeacher } = useAuthStore();
   const toast = useToast();
   const isT = isTeacher();
+  const t = useT("announcements");
+  const tc = useT("common");
+  const lang = useLang();
 
   const fetch = async () => {
     try { const { data } = await api.get("/announcements"); setList(data); }
-    catch { toast("โหลดประกาศไม่ได้", "error"); }
+    catch { toast(t("loadFail"), "error"); }
     finally { setLoading(false); }
   };
 
   useEffect(() => { fetch(); }, []);
 
   const handleAdd = async () => {
-    if (!form.title || !form.body) return toast("กรุณากรอกข้อมูลให้ครบ", "error");
+    if (!form.title || !form.body) return toast(tc("fillAllFields"), "error");
     setSaving(true);
     try {
       await api.post("/announcements", form);
-      toast("เพิ่มประกาศสำเร็จ!", "success");
+      toast(t("addSuccess"), "success");
       setModal(false); setForm({ title: "", body: "" }); fetch();
-    } catch { toast("เกิดข้อผิดพลาด", "error"); }
+    } catch { toast(tc("genericErrorShort"), "error"); }
     finally { setSaving(false); }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("ลบประกาศนี้?")) return;
-    try { await api.delete(`/announcements/${id}`); toast("ลบประกาศแล้ว", "info"); fetch(); }
-    catch { toast("ลบไม่ได้", "error"); }
+    if (!window.confirm(t("deleteConfirm"))) return;
+    try { await api.delete(`/announcements/${id}`); toast(t("deleted"), "info"); fetch(); }
+    catch { toast(tc("deleteFail"), "error"); }
   };
 
-  const fmtDate = (d) => new Date(d).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const fmtDate = (d) => new Date(d).toLocaleDateString(lang === "th" ? "th-TH" : "en-US", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="font-serif font-black text-2xl text-green-900">📢 ประกาศ</h1>
-        {isT && <button onClick={() => setModal(true)} className="btn-primary btn-sm">📢 เพิ่มประกาศ</button>}
+        <h1 className="font-serif font-bold text-2xl text-green-900">{t("title")}</h1>
+        {isT && <button onClick={() => setModal(true)} className="btn-primary btn-sm">{t("addButton")}</button>}
       </div>
 
       {loading ? (
         <div className="flex justify-center py-12"><Spinner size="lg" /></div>
       ) : !list.length ? (
-        <Empty icon="📭" text="ยังไม่มีประกาศ" />
+        <Empty icon="📭" text={t("empty")} />
       ) : (
         <div className="space-y-3">
           {list.map((a) => (
@@ -60,10 +64,10 @@ export default function Announcements() {
                 <div className="flex-1">
                   <div className="font-bold text-green-900 flex items-center gap-2">
                     📌 {a.title}
-                    {a.isRead === false && <span className="badge-blue text-xs">ใหม่</span>}
+                    {a.isRead === false && <span className="badge-blue text-xs">{t("newBadge")}</span>}
                   </div>
                   <div className="text-sm text-green-700 mt-1.5 leading-relaxed">{a.body}</div>
-                  <div className="text-xs text-green-400 mt-2">📅 {fmtDate(a.createdAt)} · โดย {a.createdBy}</div>
+                  <div className="text-xs text-green-400 mt-2">📅 {fmtDate(a.createdAt)} · {tc("byLine", { name: a.createdBy })}</div>
                 </div>
                 {isT && (
                   <button onClick={() => handleDelete(a.id)} className="btn-danger btn-sm flex-shrink-0">🗑</button>
@@ -74,10 +78,10 @@ export default function Announcements() {
         </div>
       )}
 
-      <Modal open={modal} onClose={() => setModal(false)} title="📢 เพิ่มประกาศใหม่"
-        footer={<><button onClick={() => setModal(false)} className="btn-secondary">ยกเลิก</button><button onClick={handleAdd} disabled={saving} className="btn-primary">{saving ? "กำลังส่ง..." : "📢 ประกาศ"}</button></>}>
-        <div className="mb-3"><label className="label">หัวข้อ</label><input className="input" placeholder="หัวข้อประกาศ" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-        <div className="mb-3"><label className="label">เนื้อหา</label><textarea className="input min-h-24 resize-y" placeholder="รายละเอียด..." value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} /></div>
+      <Modal open={modal} onClose={() => setModal(false)} title={t("modalTitle")}
+        footer={<><button onClick={() => setModal(false)} className="btn-secondary">{tc("cancel")}</button><button onClick={handleAdd} disabled={saving} className="btn-primary">{saving ? t("sending") : t("postButton")}</button></>}>
+        <div className="mb-3"><label className="label">{t("titleLabel")}</label><input className="input" placeholder={t("titlePlaceholder")} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+        <div className="mb-3"><label className="label">{t("bodyLabel")}</label><textarea className="input min-h-24 resize-y" placeholder={t("bodyPlaceholder")} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} /></div>
       </Modal>
     </div>
   );

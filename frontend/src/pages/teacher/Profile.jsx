@@ -3,11 +3,15 @@ import { useEffect, useRef, useState } from "react";
 import api, { BASE_URL } from "../../api/axios";
 import useAuthStore from "../../stores/authStore";
 import { useToast, Spinner } from "../../components/ui";
+import useT, { useLang } from "../../i18n/useT";
 
 export default function TeacherProfile() {
   const { updateUser } = useAuthStore();
   const toast = useToast();
   const fileInputRef = useRef(null);
+  const t = useT("teacherProfile");
+  const tc = useT("common");
+  const lang = useLang();
 
   const [profile, setProfile] = useState(null);
   const [stats, setStats] = useState({ students: 0, announcements: 0, assignments: 0 });
@@ -30,8 +34,8 @@ export default function TeacherProfile() {
     const file = e.target.files[0];
     e.target.value = "";
     if (!file) return;
-    if (!file.type.startsWith("image/")) return toast("กรุณาเลือกไฟล์รูปภาพเท่านั้น", "error");
-    if (file.size > 2 * 1024 * 1024) return toast("ไฟล์ต้องมีขนาดไม่เกิน 2MB", "error");
+    if (!file.type.startsWith("image/")) return toast(t("imageOnly"), "error");
+    if (file.size > 2 * 1024 * 1024) return toast(tc("fileSizeLimit"), "error");
 
     const fd = new FormData();
     fd.append("avatar", file);
@@ -41,25 +45,25 @@ export default function TeacherProfile() {
       setProfile((p) => ({ ...p, avatarUrl: data.avatarUrl }));
       updateUser({ avatarUrl: data.avatarUrl });
       setCacheBust(Date.now());
-      toast("อัปโหลดรูปโปรไฟล์สำเร็จ", "success");
+      toast(t("avatarUploadSuccess"), "success");
     } catch (err) {
-      toast(err.response?.data?.message || "อัปโหลดไม่สำเร็จ", "error");
+      toast(err.response?.data?.message || t("avatarUploadFail"), "error");
     } finally {
       setUploading(false);
     }
   };
 
   const handleSaveName = async () => {
-    if (!name.trim()) return toast("กรุณากรอกชื่อ", "error");
+    if (!name.trim()) return toast(tc("nameRequired"), "error");
     setSaving(true);
     try {
       const { data } = await api.patch("/auth/profile", { name });
       setProfile(data);
       updateUser({ name: data.name });
       setEditing(false);
-      toast("บันทึกชื่อสำเร็จ", "success");
+      toast(t("nameSaveSuccess"), "success");
     } catch (err) {
-      toast(err.response?.data?.message || "บันทึกไม่สำเร็จ", "error");
+      toast(err.response?.data?.message || t("saveFail"), "error");
     } finally {
       setSaving(false);
     }
@@ -69,20 +73,20 @@ export default function TeacherProfile() {
     return <div className="flex justify-center py-20"><Spinner /></div>;
   }
 
-  const joined = new Date(profile.createdAt).toLocaleDateString("th-TH", { year: "numeric", month: "long", day: "numeric" });
+  const joined = new Date(profile.createdAt).toLocaleDateString(lang === "th" ? "th-TH" : "en-US", { year: "numeric", month: "long", day: "numeric" });
 
   const StatPill = ({ icon, num, label }) => (
     <div className="flex-1 text-center">
       <div className="text-2xl">{icon}</div>
-      <div className="font-serif font-black text-xl text-green-800">{num}</div>
+      <div className="font-serif font-bold text-xl text-green-800">{num}</div>
       <div className="text-xs text-green-500">{label}</div>
     </div>
   );
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="font-serif font-black text-2xl text-green-900 mb-1">โปรไฟล์ของฉัน</h1>
-      <p className="text-green-500 text-sm mb-5">จัดการข้อมูลบัญชีครู</p>
+      <h1 className="font-serif font-bold text-2xl text-green-900 mb-1">{t("title")}</h1>
+      <p className="text-green-500 text-sm mb-5">{t("subtitle")}</p>
 
       {/* Header card */}
       <div className="card relative overflow-hidden mb-4">
@@ -98,7 +102,7 @@ export default function TeacherProfile() {
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
               className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-green-700 border-2 border-white text-white flex items-center justify-center text-sm shadow hover:bg-green-800 transition-all disabled:opacity-60"
-              title="เปลี่ยนรูปโปรไฟล์"
+              title={t("changeAvatarTitle")}
             >
               {uploading ? "…" : "📷"}
             </button>
@@ -114,24 +118,24 @@ export default function TeacherProfile() {
                 autoFocus
               />
             ) : (
-              <div className="font-serif font-black text-xl text-green-900">{profile.name}</div>
+              <div className="font-serif font-bold text-xl text-green-900">{profile.name}</div>
             )}
             <div className="text-sm text-green-500 mt-0.5">@{profile.username}</div>
-            <span className="badge-green mt-2 inline-flex">ครู / แอดมิน</span>
+            <span className="badge-green mt-2 inline-flex">{tc("roleLabel")}</span>
           </div>
 
           <div className="mt-4">
             {editing ? (
               <div className="flex gap-2">
                 <button className="btn-primary btn-sm" onClick={handleSaveName} disabled={saving}>
-                  {saving ? "กำลังบันทึก..." : "บันทึก"}
+                  {saving ? tc("saving") : tc("save")}
                 </button>
                 <button className="btn-secondary btn-sm" onClick={() => { setEditing(false); setName(profile.name); }}>
-                  ยกเลิก
+                  {tc("cancel")}
                 </button>
               </div>
             ) : (
-              <button className="btn-secondary btn-sm" onClick={() => setEditing(true)}>✏️ แก้ไขชื่อ</button>
+              <button className="btn-secondary btn-sm" onClick={() => setEditing(true)}>{t("editName")}</button>
             )}
           </div>
         </div>
@@ -139,26 +143,26 @@ export default function TeacherProfile() {
 
       {/* Account info */}
       <div className="card mb-4">
-        <div className="font-serif font-bold text-green-900 mb-3">ข้อมูลบัญชี</div>
+        <div className="font-serif font-bold text-green-900 mb-3">{t("accountInfo")}</div>
         <div className="flex items-center justify-between py-2 border-b border-green-50 text-sm">
-          <span className="text-green-500">ชื่อผู้ใช้</span>
+          <span className="text-green-500">{t("usernameField")}</span>
           <span className="font-semibold text-green-900">{profile.username}</span>
         </div>
         <div className="flex items-center justify-between py-2 border-b border-green-50 text-sm">
-          <span className="text-green-500">สิทธิ์การใช้งาน</span>
-          <span className="font-semibold text-green-900">ครู / แอดมิน</span>
+          <span className="text-green-500">{t("roleField")}</span>
+          <span className="font-semibold text-green-900">{tc("roleLabel")}</span>
         </div>
         <div className="flex items-center justify-between py-2 text-sm">
-          <span className="text-green-500">เข้าร่วมเมื่อ</span>
+          <span className="text-green-500">{t("joinedField")}</span>
           <span className="font-semibold text-green-900">{joined}</span>
         </div>
       </div>
 
       {/* Quick stats pulled from real database */}
       <div className="card flex">
-        <StatPill icon="👥" num={stats.students} label="นักเรียนที่ดูแล" />
-        <StatPill icon="📢" num={stats.announcements} label="ประกาศที่สร้าง" />
-        <StatPill icon="📝" num={stats.assignments} label="งานที่มอบหมาย" />
+        <StatPill icon="👥" num={stats.students} label={t("statStudents")} />
+        <StatPill icon="📢" num={stats.announcements} label={t("statAnnouncements")} />
+        <StatPill icon="📝" num={stats.assignments} label={t("statAssignments")} />
       </div>
     </div>
   );

@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../stores/authStore";
+import useT, { useLang } from "../../i18n/useT";
+import LanguageToggle from "../../components/LanguageToggle";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -61,6 +63,7 @@ function ProfilePage({ profile, token, avatarUrl, onAvatarUpdate }) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const fileInputRef = useRef(null);
+  const t = useT("studentDashboard");
 
   const displayAvatar = preview || avatarUrl;
 
@@ -131,27 +134,27 @@ function ProfilePage({ profile, token, avatarUrl, onAvatarUpdate }) {
         </div>
 
         {error   && <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 12, color: "#dc2626", background: "#fee2e2", padding: "8px 14px", borderRadius: 99 }}>{error}</div>}
-        {success && <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 12, color: "#57712f", background: "#e5ead2", padding: "8px 14px", borderRadius: 99 }}>อัพโหลดรูปสำเร็จ ✓</div>}
+        {success && <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 12, color: "#57712f", background: "#e5ead2", padding: "8px 14px", borderRadius: 99 }}>{t("avatarUploadSuccess")}</div>}
 
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
           style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "white", background: "#57712f", border: "none", padding: "10px 24px", borderRadius: 99, cursor: uploading ? "not-allowed" : "pointer", fontWeight: 500, opacity: uploading ? 0.7 : 1 }}>
-          {uploading ? "กำลังอัพโหลด..." : "เปลี่ยนรูปโปรไฟล์"}
+          {uploading ? t("uploading") : t("changeAvatar")}
         </button>
 
-        <p style={{ fontFamily: "'Mitr',sans-serif", fontSize: 11, color: "#9ca3af" }}>รองรับ JPG, PNG ขนาดไม่เกิน 2MB</p>
+        <p style={{ fontFamily: "'Mitr',sans-serif", fontSize: 11, color: "#9ca3af" }}>{t("avatarHint")}</p>
       </div>
 
       {/* Info card */}
       <div style={{ background: "white", borderRadius: 20, padding: 20, border: "1px solid #e5ead2", boxShadow: "0 2px 12px rgba(87,113,47,0.07)" }}>
-        <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 14, color: "#232a15", marginBottom: 14 }}>ข้อมูลนักเรียน</div>
+        <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 14, color: "#232a15", marginBottom: 14 }}>{t("infoTitle")}</div>
         {[
-          { label: "รหัสนักเรียน", value: profile.id },
-          { label: "ชื่อ-นามสกุล", value: profile.name },
-          { label: "ห้องเรียน",    value: profile.class },
-          { label: "คะแนนสะสม",   value: `${profile.score} คะแนน` },
-          { label: "ระดับ",        value: `Level ${profile.level}` },
+          { label: t("fieldId"), value: profile.id },
+          { label: t("fieldName"), value: profile.name },
+          { label: t("fieldClass"),    value: profile.class },
+          { label: t("fieldScore"),   value: t("scoreValue", { score: profile.score }) },
+          { label: t("fieldLevel"),        value: `Level ${profile.level}` },
         ].map((item, i, arr) => (
           <div key={item.label} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: i < arr.length - 1 ? "1px solid #f4f6ee" : "none" }}>
             <span style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#6b7280" }}>{item.label}</span>
@@ -165,6 +168,8 @@ function ProfilePage({ profile, token, avatarUrl, onAvatarUpdate }) {
 
 // ─── HomePage ─────────────────────────────────────────────────────────────────
 function HomePage({ profile, scores, assignments, avatarUrl, onTabChange }) {
+  const t = useT("studentDashboard");
+  const lang = useLang();
   if (!profile) return <LoadingCard />;
 
   const scorePct  = Math.round((profile.score / 1000) * 100);
@@ -185,11 +190,11 @@ function HomePage({ profile, scores, assignments, avatarUrl, onTabChange }) {
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 18, color: "#232a15" }}>{profile.name}</div>
             <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#57712f", marginTop: 2 }}>{profile.class}</div>
-            <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 12, color: "#a3a3a3", marginTop: 2 }}>รหัส {profile.id}</div>
+            <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 12, color: "#a3a3a3", marginTop: 2 }}>{t("idPrefix", { id: profile.id })}</div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, paddingTop: 14, borderTop: "1px solid #f4f6ee" }}>
-          <span style={{ fontFamily: "'Mitr',sans-serif", fontSize: 12, color: "#57712f" }}>ระดับ</span>
+          <span style={{ fontFamily: "'Mitr',sans-serif", fontSize: 12, color: "#57712f" }}>{t("fieldLevel")}</span>
           <div style={{ display: "flex", gap: 3 }}>
             {Array.from({ length: 5 }).map((_, i) => (
               <span key={i} style={{ fontSize: 18 }}>{i < stars ? "⭐" : "☆"}</span>
@@ -201,11 +206,11 @@ function HomePage({ profile, scores, assignments, avatarUrl, onTabChange }) {
 
       {/* Score summary */}
       <div style={{ background: "white", borderRadius: 20, padding: 20, border: "1px solid #e5ead2", boxShadow: "0 2px 12px rgba(87,113,47,0.07)" }}>
-        <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 14, color: "#232a15", marginBottom: 14 }}>คะแนนสะสม</div>
+        <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 14, color: "#232a15", marginBottom: 14 }}>{t("scoreSummaryTitle")}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
           {[
-            { label: "คะแนนทั้งหมด", value: profile.score, icon: "⭐", color: "#fef9c3", textColor: "#854d0e" },
-            { label: "เป้าหมาย",     value: targetScore,   icon: "🎯", color: "#f4f6ee", textColor: "#333f1e" },
+            { label: t("totalScoreLabel"), value: profile.score, icon: "⭐", color: "#fef9c3", textColor: "#854d0e" },
+            { label: t("targetLabel"),     value: targetScore,   icon: "🎯", color: "#f4f6ee", textColor: "#333f1e" },
           ].map(s => (
             <div key={s.label} style={{ background: s.color, borderRadius: 14, padding: "14px 16px" }}>
               <div style={{ fontSize: 22 }}>{s.icon}</div>
@@ -215,8 +220,8 @@ function HomePage({ profile, scores, assignments, avatarUrl, onTabChange }) {
           ))}
         </div>
         {[
-          { label: `คะแนนสะสม (${profile.score}/1000)`, pct: scorePct, color: "#6f8d3d" },
-          { label: `เป้าหมาย (เหลืออีก ${Math.max(0, targetScore - profile.score)} คะแนน)`, pct: targetPct, color: "#8ba656" },
+          { label: t("scoreProgressLabel", { score: profile.score }), pct: scorePct, color: "#6f8d3d" },
+          { label: t("targetProgressLabel", { remain: Math.max(0, targetScore - profile.score) }), pct: targetPct, color: "#8ba656" },
         ].map(bar => (
           <div key={bar.label} style={{ marginBottom: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "'Mitr',sans-serif", fontSize: 12, color: "#6b7280", marginBottom: 5 }}>
@@ -232,7 +237,7 @@ function HomePage({ profile, scores, assignments, avatarUrl, onTabChange }) {
 
       {/* Recent scores */}
       <div style={{ background: "white", borderRadius: 20, padding: 20, border: "1px solid #e5ead2", boxShadow: "0 2px 12px rgba(87,113,47,0.07)" }}>
-        <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 14, color: "#232a15", marginBottom: 14 }}>คะแนนล่าสุด</div>
+        <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 14, color: "#232a15", marginBottom: 14 }}>{t("recentScoresTitle")}</div>
         {!scores ? <LoadingCard /> : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {scores.slice(0, 3).map(s => (
@@ -240,7 +245,7 @@ function HomePage({ profile, scores, assignments, avatarUrl, onTabChange }) {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#232a15", fontWeight: 500 }}>{s.description}</div>
                   <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 11, color: "#9ca3af", marginTop: 1 }}>
-                    {new Date(s.createdAt).toLocaleDateString("th-TH")} · โดย {s.givenBy}
+                    {t("scoreMetaBy", { date: new Date(s.createdAt).toLocaleDateString(lang === "th" ? "th-TH" : "en-US"), name: s.givenBy })}
                   </div>
                 </div>
                 <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 15, color: s.delta > 0 ? "#57712f" : "#dc2626" }}>
@@ -248,14 +253,14 @@ function HomePage({ profile, scores, assignments, avatarUrl, onTabChange }) {
                 </div>
               </div>
             ))}
-            {scores.length === 0 && <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#9ca3af", textAlign: "center", padding: "12px 0" }}>ยังไม่มีคะแนน</div>}
+            {scores.length === 0 && <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#9ca3af", textAlign: "center", padding: "12px 0" }}>{t("noScores")}</div>}
           </div>
         )}
       </div>
 
       {/* Pending assignments */}
       <div style={{ background: "white", borderRadius: 20, padding: 20, border: "1px solid #e5ead2", boxShadow: "0 2px 12px rgba(87,113,47,0.07)" }}>
-        <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 14, color: "#232a15", marginBottom: 14 }}>งานที่ต้องส่ง</div>
+        <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 14, color: "#232a15", marginBottom: 14 }}>{t("pendingAssignmentsTitle")}</div>
         {!assignments ? <LoadingCard /> : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {assignments.filter(a => new Date(a.dueDate) >= new Date()).slice(0, 3).map(a => (
@@ -263,13 +268,13 @@ function HomePage({ profile, scores, assignments, avatarUrl, onTabChange }) {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#232a15", fontWeight: 500 }}>{a.title}</div>
                   <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 11, color: "#f97316", marginTop: 2 }}>
-                    ส่งภายใน {new Date(a.dueDate).toLocaleDateString("th-TH")}
+                    {t("dueWithin", { date: new Date(a.dueDate).toLocaleDateString(lang === "th" ? "th-TH" : "en-US") })}
                   </div>
                 </div>
               </div>
             ))}
             {assignments.filter(a => new Date(a.dueDate) >= new Date()).length === 0 && (
-              <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#9ca3af", textAlign: "center", padding: "12px 0" }}>ไม่มีงานค้างส่ง 🎉</div>
+              <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#9ca3af", textAlign: "center", padding: "12px 0" }}>{t("noPendingAssignments")}</div>
             )}
           </div>
         )}
@@ -280,35 +285,37 @@ function HomePage({ profile, scores, assignments, avatarUrl, onTabChange }) {
 
 // ─── ScoresPage ───────────────────────────────────────────────────────────────
 function ScoresPage({ scores }) {
+  const t = useT("studentDashboard");
+  const lang = useLang();
   if (!scores) return <LoadingCard />;
   const total = scores.reduce((s, r) => s + r.delta, 0);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ background: "white", borderRadius: 20, padding: 20, border: "1px solid #e5ead2", boxShadow: "0 2px 12px rgba(87,113,47,0.07)" }}>
-        <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 14, color: "#232a15", marginBottom: 4 }}>สรุปคะแนน</div>
-        <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#57712f", marginBottom: 14 }}>ประวัติทั้งหมด {scores.length} รายการ</div>
+        <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 14, color: "#232a15", marginBottom: 4 }}>{t("scoresSummaryTitle")}</div>
+        <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#57712f", marginBottom: 14 }}>{t("totalRecords", { n: scores.length })}</div>
         <div style={{ display: "flex", gap: 10 }}>
           <div style={{ flex: 1, background: "#f4f6ee", borderRadius: 14, padding: "12px 14px", textAlign: "center" }}>
             <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 22, color: "#57712f" }}>{total}</div>
-            <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 11, color: "#57712f" }}>คะแนนรวม</div>
+            <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 11, color: "#57712f" }}>{t("totalPointsLabel")}</div>
           </div>
           <div style={{ flex: 1, background: "#fafafa", borderRadius: 14, padding: "12px 14px", textAlign: "center" }}>
             <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 22, color: "#6b7280" }}>{scores.length}</div>
-            <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 11, color: "#9ca3af" }}>รายการ</div>
+            <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 11, color: "#9ca3af" }}>{t("recordsLabel")}</div>
           </div>
         </div>
       </div>
 
       <div style={{ background: "white", borderRadius: 20, padding: 20, border: "1px solid #e5ead2", boxShadow: "0 2px 12px rgba(87,113,47,0.07)" }}>
-        <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 14, color: "#232a15", marginBottom: 14 }}>ประวัติคะแนน</div>
+        <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 14, color: "#232a15", marginBottom: 14 }}>{t("scoreHistoryTitle")}</div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           {scores.map((s, i) => (
             <div key={s.id} style={{ padding: "14px 0", borderBottom: i < scores.length - 1 ? "1px solid #f4f6ee" : "none", display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#232a15", fontWeight: 500 }}>{s.description}</div>
                 <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 11, color: "#9ca3af", marginTop: 2 }}>
-                  {new Date(s.createdAt).toLocaleDateString("th-TH")} · {s.givenBy}
+                  {t("scoreMeta", { date: new Date(s.createdAt).toLocaleDateString(lang === "th" ? "th-TH" : "en-US"), name: s.givenBy })}
                 </div>
               </div>
               <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 700, fontSize: 18, color: s.delta > 0 ? "#57712f" : "#dc2626" }}>
@@ -317,7 +324,7 @@ function ScoresPage({ scores }) {
             </div>
           ))}
           {scores.length === 0 && (
-            <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#9ca3af", textAlign: "center", padding: "20px 0" }}>ยังไม่มีประวัติคะแนน</div>
+            <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#9ca3af", textAlign: "center", padding: "20px 0" }}>{t("noScoreHistory")}</div>
           )}
         </div>
       </div>
@@ -327,6 +334,8 @@ function ScoresPage({ scores }) {
 
 // ─── AnnouncementsPage ────────────────────────────────────────────────────────
 function AnnouncementsPage({ announcements, token }) {
+  const t = useT("studentDashboard");
+  const lang = useLang();
   if (!announcements) return <LoadingCard />;
 
   const markRead = async (id) => {
@@ -339,7 +348,7 @@ function AnnouncementsPage({ announcements, token }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {announcements.length === 0 && (
-        <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#9ca3af", textAlign: "center", padding: "40px 0" }}>ยังไม่มีประกาศ</div>
+        <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#9ca3af", textAlign: "center", padding: "40px 0" }}>{t("noAnnouncements")}</div>
       )}
       {announcements.map(a => (
         <div key={a.id} onClick={() => markRead(a.id)}
@@ -347,12 +356,12 @@ function AnnouncementsPage({ announcements, token }) {
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
             {!a.isRead && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#6f8d3d", flexShrink: 0 }} />}
             <span style={{ fontFamily: "'Mitr',sans-serif", fontSize: 11, color: "#9ca3af", marginLeft: "auto" }}>
-              {new Date(a.createdAt).toLocaleDateString("th-TH")}
+              {new Date(a.createdAt).toLocaleDateString(lang === "th" ? "th-TH" : "en-US")}
             </span>
           </div>
           <div style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 600, fontSize: 15, color: "#232a15", marginBottom: 6 }}>{a.title}</div>
           <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#6b7280", lineHeight: 1.7 }}>{a.body}</div>
-          <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 11, color: "#9ca3af", marginTop: 8 }}>โดย {a.createdBy}</div>
+          <div style={{ fontFamily: "'Mitr',sans-serif", fontSize: 11, color: "#9ca3af", marginTop: 8 }}>{t("byLine", { name: a.createdBy })}</div>
         </div>
       ))}
     </div>
@@ -421,28 +430,32 @@ const NavIcon = ({ tab }) => {
   return icons[tab] || null;
 };
 
-const tabs = [
-  { id: "home",          label: "หน้าหลัก" },
-  { id: "scores",        label: "คะแนน" },
-  { id: "announcements", label: "ประกาศ" },
-  { id: "assignments",   label: "งาน" },
-  { id: "profile",       label: "โปรไฟล์" },
-];
-
-const pageTitles = {
-  home:          "หน้าหลัก",
-  scores:        "คะแนนของฉัน",
-  announcements: "ประกาศจากครู",
-  assignments:   "งานที่ได้รับ",
-  profile:       "โปรไฟล์ของฉัน",
+const TAB_IDS = ["home", "scores", "announcements", "assignments", "profile"];
+const TAB_KEYS = {
+  home: "tabHome",
+  scores: "tabScores",
+  announcements: "tabAnnouncements",
+  assignments: "tabAssignments",
+  profile: "tabProfile",
+};
+const TITLE_KEYS = {
+  home: "titleHome",
+  scores: "titleScores",
+  announcements: "titleAnnouncements",
+  assignments: "titleAssignments",
+  profile: "titleProfile",
 };
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function StudentDashboard() {
+  const t = useT("studentDashboard");
   const [activeTab, setActiveTab]   = useState("home");
   const [avatarUrl, setAvatarUrl]   = useState(null); // ✅ state รูป avatar
   const { user, token, logout }     = useAuthStore();
   const navigate = useNavigate();
+
+  const tabs = TAB_IDS.map((id) => ({ id, label: t(TAB_KEYS[id]) }));
+  const pageTitles = Object.fromEntries(TAB_IDS.map((id) => [id, t(TITLE_KEYS[id])]));
 
   const { data: profile }       = useApiFetch("/api/auth/me", [token]);
   const { data: scores }        = useApiFetch(user ? `/api/scores/${user.id}/history` : null, [user?.id]);
@@ -518,17 +531,27 @@ export default function StudentDashboard() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 3, flex: 1 }}>
-            {tabs.map(t => (
-              <button key={t.id} className={`sidebar-btn ${activeTab === t.id ? "active" : "inactive"}`} onClick={() => setActiveTab(t.id)}>
-                <span style={{ opacity: activeTab === t.id ? 1 : 0.7, display: "flex" }}><NavIcon tab={t.id} /></span>
-                {t.label}
+            {tabs.map(tb => (
+              <button key={tb.id} className={`sidebar-btn ${activeTab === tb.id ? "active" : "inactive"}`} onClick={() => setActiveTab(tb.id)}>
+                <span style={{ opacity: activeTab === tb.id ? 1 : 0.7, display: "flex" }}><NavIcon tab={tb.id} /></span>
+                {tb.label}
               </button>
             ))}
           </div>
 
-          <button onClick={handleLogout} style={{ width: "100%", padding: "11px 16px", borderRadius: 12, border: "1.5px solid rgba(255,255,255,0.2)", background: "none", fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, marginTop: 16 }}>
+          <LanguageToggle
+            style={{
+              background: "rgba(255,255,255,0.12)",
+              border: "1.5px solid rgba(255,255,255,0.2)",
+              color: "white",
+              marginTop: 16,
+              alignSelf: "flex-start",
+            }}
+          />
+
+          <button onClick={handleLogout} style={{ width: "100%", padding: "11px 16px", borderRadius: 12, border: "1.5px solid rgba(255,255,255,0.2)", background: "none", fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            ออกจากระบบ
+            {t("logout")}
           </button>
         </div>
 
@@ -538,23 +561,26 @@ export default function StudentDashboard() {
           <div className="mobile-header" style={{ background: "white", borderBottom: "1px solid #e5ead2", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 10 }}>
             <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 900, fontSize: 18, color: "#232a15" }}>PimChim<span style={{ color: "#57712f" }}>+</span></div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "#232a15" }}>{pageTitles[activeTab]}</div>
-            {/* ✅ คลิกรูปใน mobile header ไปหน้า profile */}
-            <div onClick={() => setActiveTab("profile")} style={{ cursor: "pointer", width: 32, height: 32, borderRadius: "50%", background: "#e5ead2", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
-              {avatarUrl
-                ? <img src={avatarUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                : "👦"}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <LanguageToggle style={{ fontSize: 11, padding: "4px 10px" }} />
+              {/* ✅ คลิกรูปใน mobile header ไปหน้า profile */}
+              <div onClick={() => setActiveTab("profile")} style={{ cursor: "pointer", width: 32, height: 32, borderRadius: "50%", background: "#e5ead2", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
+                {avatarUrl
+                  ? <img src={avatarUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  : "👦"}
+              </div>
             </div>
           </div>
 
           <div className="main-content">
             <div style={{ marginBottom: 20 }}>
-              <h1 style={{ fontFamily: "'Noto Serif Thai',serif", fontWeight: 700, fontSize: 24, color: "#232a15" }}>{pageTitles[activeTab]}</h1>
+              <h1 style={{ fontFamily: "'Mitr',sans-serif", fontWeight: 700, fontSize: 24, color: "#232a15" }}>{pageTitles[activeTab]}</h1>
               <p style={{ fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "#57712f", marginTop: 2 }}>
-                {activeTab === "home"          && `สวัสดี ${profile?.name || user?.name} 👋`}
-                {activeTab === "scores"        && `ประวัติคะแนน ${scores?.length || 0} รายการ`}
-                {activeTab === "announcements" && `${announcements?.length || 0} ประกาศจากครู`}
-                {activeTab === "assignments"   && `งานทั้งหมด ${assignments?.length || 0} ชิ้น`}
-                {activeTab === "profile"       && "จัดการข้อมูลส่วนตัว"}
+                {activeTab === "home"          && t("greeting", { name: profile?.name || user?.name })}
+                {activeTab === "scores"        && t("scoresSubtitle", { n: scores?.length || 0 })}
+                {activeTab === "announcements" && t("announcementsSubtitle", { n: announcements?.length || 0 })}
+                {activeTab === "assignments"   && t("assignmentsSubtitle", { n: assignments?.length || 0 })}
+                {activeTab === "profile"       && t("profileSubtitle")}
               </p>
             </div>
             {pageContent[activeTab]}
@@ -563,11 +589,11 @@ export default function StudentDashboard() {
 
         {/* ── Bottom nav (mobile) ── */}
         <div className="bottom-nav" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "white", borderTop: "1px solid #e5ead2", display: "flex", zIndex: 50, paddingBottom: "env(safe-area-inset-bottom)" }}>
-          {tabs.map(t => (
-            <button key={t.id} className="bottom-nav-btn" style={{ color: activeTab === t.id ? "#57712f" : "#9ca3af" }} onClick={() => setActiveTab(t.id)}>
-              <NavIcon tab={t.id} />
-              {t.label}
-              {activeTab === t.id && <div style={{ width: 4, height: 4, background: "#57712f", borderRadius: "50%" }} />}
+          {tabs.map(tb => (
+            <button key={tb.id} className="bottom-nav-btn" style={{ color: activeTab === tb.id ? "#57712f" : "#9ca3af" }} onClick={() => setActiveTab(tb.id)}>
+              <NavIcon tab={tb.id} />
+              {tb.label}
+              {activeTab === tb.id && <div style={{ width: 4, height: 4, background: "#57712f", borderRadius: "50%" }} />}
             </button>
           ))}
         </div>
