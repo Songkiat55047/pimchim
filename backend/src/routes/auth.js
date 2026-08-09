@@ -70,10 +70,6 @@ router.post("/login", async (req, res) => {
       const valid = await bcrypt.compare(password, student.passwordHash);
       if (!valid) return res.status(401).json({ message: "รหัสผ่านไม่ถูกต้อง" });
 
-      if (student.status === "PENDING") {
-        return res.status(403).json({ message: "บัญชียังไม่ได้รับการอนุมัติจากครู", pending: true });
-      }
-
       const token = signToken({ id: student.id, role: "STUDENT", name: student.name });
       return res.json({
         token,
@@ -150,39 +146,6 @@ router.post("/register", async (req, res) => {
     res.status(201).json({ message: "สมัครสมาชิกสำเร็จ" });
   } catch (err) {
     if (err.code === "P2002") return res.status(409).json({ message: "Username นี้ถูกใช้แล้ว" });
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// POST /api/auth/register-student — self-registration, held for teacher approval
-// Body: { id, name, class, password }
-router.post("/register-student", async (req, res) => {
-  const { id, name, class: cls, password } = req.body;
-  if (!id || !name || !cls || !password) {
-    return res.status(400).json({ message: "id, name, class, password required" });
-  }
-  if (password.length < 6) {
-    return res.status(400).json({ message: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" });
-  }
-  try {
-    const studentId = id.toUpperCase();
-    const exists = await prisma.student.findUnique({ where: { id: studentId } });
-    if (exists) return res.status(409).json({ message: "รหัสนักเรียนนี้มีอยู่แล้ว" });
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    await prisma.student.create({
-      data: {
-        id: studentId,
-        name,
-        class: cls,
-        passwordHash,
-        passwordChanged: true,
-        status: "PENDING",
-      },
-    });
-    res.status(201).json({ message: "ลงทะเบียนสำเร็จ รอครูอนุมัติ" });
-  } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }

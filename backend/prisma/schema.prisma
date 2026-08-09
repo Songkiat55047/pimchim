@@ -28,7 +28,6 @@ model Student {
   passwordHash    String
   passwordChanged Boolean      @default(false)
   avatarUrl       String?
-  status          StudentStatus @default(APPROVED)
   createdAt       DateTime     @default(now())
   scoreLogs       ScoreLog[]
   readAnnouncements AnnouncementRead[]
@@ -76,9 +75,4 @@ model Assignment {
 enum Role {
   TEACHER
   STUDENT
-}
-
-enum StudentStatus {
-  PENDING
-  APPROVED
 }

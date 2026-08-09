@@ -5,6 +5,7 @@ import useAuthStore from "../stores/authStore";
 import { useToast } from "../components/ui";
 import useT from "../i18n/useT";
 import LanguageToggle from "../components/LanguageToggle";
+import { enOnly } from "../utils/enOnly";
 
 export default function TeacherLogin() {
   const [form, setForm] = useState({ username: "", password: "" });
@@ -83,7 +84,7 @@ export default function TeacherLogin() {
             style={inputStyle("user")}
             placeholder="username"
             value={form.username}
-            onChange={e => setForm({ ...form, username: e.target.value })}
+            onChange={e => setForm({ ...form, username: enOnly(e.target.value) })}
             onFocus={() => setFocused("user")} onBlur={() => setFocused(null)}
             onKeyDown={handleKey}
             autoComplete="username"
@@ -93,7 +94,7 @@ export default function TeacherLogin() {
             style={inputStyle("pass")}
             placeholder="password"
             value={form.password}
-            onChange={e => setForm({ ...form, password: e.target.value })}
+            onChange={e => setForm({ ...form, password: enOnly(e.target.value) })}
             onFocus={() => setFocused("pass")} onBlur={() => setFocused(null)}
             onKeyDown={handleKey}
             autoComplete="current-password"

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import useT from "../i18n/useT";
 import LanguageToggle from "../components/LanguageToggle";
+import { enOnly } from "../utils/enOnly";
 
 export default function Setup() {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ export default function Setup() {
               type="text"
               placeholder={t("namePlaceholder")}
               value={form.name}
-              onChange={e => setForm({ ...form, name: e.target.value })}
+              onChange={e => setForm({ ...form, name: enOnly(e.target.value) })}
               className="w-full border rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               required
             />
@@ -72,7 +73,7 @@ export default function Setup() {
               type="text"
               placeholder={t("usernamePlaceholder")}
               value={form.username}
-              onChange={e => setForm({ ...form, username: e.target.value })}
+              onChange={e => setForm({ ...form, username: enOnly(e.target.value) })}
               className="w-full border rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               required
             />
@@ -83,7 +84,7 @@ export default function Setup() {
               type="password"
               placeholder={tc("minPasswordPlaceholder")}
               value={form.password}
-              onChange={e => setForm({ ...form, password: e.target.value })}
+              onChange={e => setForm({ ...form, password: enOnly(e.target.value) })}
               minLength={6}
               className="w-full border rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               required

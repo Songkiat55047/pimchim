@@ -68,7 +68,6 @@ router.post("/:studentId", authenticate, teacherOnly, async (req, res) => {
 router.get("/leaderboard", authenticate, async (req, res) => {
   try {
     const students = await prisma.student.findMany({
-      where: { status: "APPROVED" },
       select: { id: true, name: true, class: true, score: true, level: true },
       orderBy: { score: "desc" },
       take: 50,

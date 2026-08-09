@@ -15,8 +15,6 @@ export default function Students() {
   const [form, setForm] = useState({ id: "", name: "", class: "" });
   const [importRows, setImportRows] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [pending, setPending] = useState([]);
-  const [pendingBusyId, setPendingBusyId] = useState(null);
   const fileRef = useRef();
   const toast = useToast();
   const t = useT("teacherStudents");
@@ -30,38 +28,7 @@ export default function Students() {
     finally { setLoading(false); }
   };
 
-  const fetchPending = async () => {
-    try {
-      const { data } = await api.get("/students/pending");
-      setPending(data);
-    } catch { /* non-critical — silently skip if it fails to load */ }
-  };
-
   useEffect(() => { fetchStudents(); }, [search]);
-  useEffect(() => { fetchPending(); }, []);
-
-  // ── PENDING REGISTRATIONS ──
-  const handleApprove = async (id) => {
-    setPendingBusyId(id);
-    try {
-      await api.post(`/students/${id}/approve`);
-      toast(t("approveSuccess"), "success");
-      setPending((p) => p.filter((s) => s.id !== id));
-      fetchStudents();
-    } catch (err) { toast(err.response?.data?.message || t("approveFail"), "error"); }
-    finally { setPendingBusyId(null); }
-  };
-
-  const handleReject = async (s) => {
-    if (!window.confirm(t("rejectConfirm", { name: s.name }))) return;
-    setPendingBusyId(s.id);
-    try {
-      await api.delete(`/students/${s.id}`);
-      toast(t("rejectSuccess"), "info");
-      setPending((p) => p.filter((x) => x.id !== s.id));
-    } catch { toast(tc("deleteFail"), "error"); }
-    finally { setPendingBusyId(null); }
-  };
 
   // ── GROUP BY CLASS ──
   const { groups, classNames } = useClassGroups(students);
@@ -157,41 +124,6 @@ export default function Students() {
   return (
     <div>
       <h1 className="font-serif font-bold text-2xl text-green-900 mb-4">{t("title")}</h1>
-
-      {/* Pending registrations */}
-      {pending.length > 0 && (
-        <div className="card p-0 overflow-hidden mb-4 border-yellow-200">
-          <div className="flex items-center gap-2 px-4 py-3 bg-yellow-50 border-b-2 border-yellow-100">
-            <span className="font-serif font-bold text-yellow-900">{t("pendingTitle")}</span>
-            <span className="badge-yellow">{t("pendingCount", { n: pending.length })}</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-yellow-50/60 text-yellow-900 font-bold">
-                <tr>
-                  <th className="px-4 py-2.5 text-left whitespace-nowrap">{t("thId")}</th>
-                  <th className="px-4 py-2.5 text-left whitespace-nowrap">{t("thName")}</th>
-                  <th className="px-4 py-2.5 text-left whitespace-nowrap">{t("thClass")}</th>
-                  <th className="px-4 py-2.5 text-left whitespace-nowrap">{t("thActions")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pending.map((s) => (
-                  <tr key={s.id} className="border-t border-yellow-50">
-                    <td className="px-4 py-3"><span className="badge-blue">{s.id}</span></td>
-                    <td className="px-4 py-3 font-semibold">{s.name}</td>
-                    <td className="px-4 py-3">{s.class}</td>
-                    <td className="px-4 py-3 flex gap-1">
-                      <button onClick={() => handleApprove(s.id)} disabled={pendingBusyId === s.id} className="btn-primary btn-sm">{t("approve")}</button>
-                      <button onClick={() => handleReject(s)} disabled={pendingBusyId === s.id} className="btn-danger btn-sm">{t("reject")}</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
       {/* Toolbar */}
       <div className="flex flex-wrap gap-2 mb-4">

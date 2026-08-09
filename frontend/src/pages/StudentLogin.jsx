@@ -5,6 +5,7 @@ import useAuthStore from "../stores/authStore";
 import { useToast } from "../components/ui";
 import useT from "../i18n/useT";
 import LanguageToggle from "../components/LanguageToggle";
+import { enOnly } from "../utils/enOnly";
 
 export default function StudentLogin() {
   const [form, setForm] = useState({ username: "", password: "" });
@@ -24,8 +25,7 @@ export default function StudentLogin() {
       if (form.password === form.username || data?.requirePasswordChange) navigate("/change-password");
       else navigate("/student/profile");
     } catch (err) {
-      if (err.response?.data?.pending) toast(t("pendingApproval"), "error");
-      else toast(err.response?.data?.message || t("invalidCreds"), "error");
+      toast(err.response?.data?.message || t("invalidCreds"), "error");
     } finally { setLoading(false); }
   };
 
@@ -75,11 +75,11 @@ export default function StudentLogin() {
 
         <div style={{ width: "100%", maxWidth: 300, display: "flex", flexDirection: "column", gap: 12 }}>
           <input style={inputStyle("username")} placeholder={t("usernamePlaceholder")}
-            value={form.username} onChange={e => setForm({ ...form, username: e.target.value })}
+            value={form.username} onChange={e => setForm({ ...form, username: enOnly(e.target.value) })}
             onFocus={() => setFocused("username")} onBlur={() => setFocused(null)}
             onKeyDown={handleKey} autoComplete="username" />
           <input type="password" style={inputStyle("password")} placeholder={tc("passwordPlaceholder")}
-            value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
+            value={form.password} onChange={e => setForm({ ...form, password: enOnly(e.target.value) })}
             onFocus={() => setFocused("password")} onBlur={() => setFocused(null)}
             onKeyDown={handleKey} autoComplete="current-password" />
 
@@ -103,11 +103,6 @@ export default function StudentLogin() {
           {t("note1")}<br />
           {t("note2")}
         </p>
-
-        <button onClick={() => navigate("/signup/student")}
-          style={{ fontFamily: "'Mitr', sans-serif", fontSize: 13, fontWeight: 500, color: "#57712f", background: "none", border: "none", cursor: "pointer", marginTop: 12 }}>
-          {t("registerLink")}
-        </button>
       </div>
     </div>
   );

@@ -497,12 +497,14 @@ export default function StudentDashboard() {
         .sidebar-btn.inactive { background: transparent; color: rgba(255,255,255,0.6); }
         .sidebar-btn.inactive:hover { background: rgba(255,255,255,0.10); color: white; }
         .bottom-nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 4px; background: none; border: none; cursor: pointer; font-family: 'Mitr', sans-serif; font-size: 10px; transition: color 0.15s; }
+        .desktop-toggle { display: none; }
         @media (min-width: 768px) {
           .layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
           .sidebar { display: flex !important; }
           .mobile-header { display: none !important; }
           .bottom-nav { display: none !important; }
           .main-content { padding: 32px 28px; }
+          .desktop-toggle { display: inline-flex !important; }
         }
         @media (max-width: 767px) {
           .layout { display: block; }
@@ -539,16 +541,6 @@ export default function StudentDashboard() {
             ))}
           </div>
 
-          <LanguageToggle
-            style={{
-              background: "rgba(255,255,255,0.12)",
-              border: "1.5px solid rgba(255,255,255,0.2)",
-              color: "white",
-              marginTop: 16,
-              alignSelf: "flex-start",
-            }}
-          />
-
           <button onClick={handleLogout} style={{ width: "100%", padding: "11px 16px", borderRadius: 12, border: "1.5px solid rgba(255,255,255,0.2)", background: "none", fontFamily: "'Mitr',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             {t("logout")}
@@ -556,7 +548,9 @@ export default function StudentDashboard() {
         </div>
 
         {/* ── Main ── */}
-        <div>
+        <div style={{ position: "relative" }}>
+          <LanguageToggle className="desktop-toggle" style={{ position: "absolute", top: 24, right: 28, zIndex: 10 }} />
+
           {/* Mobile header */}
           <div className="mobile-header" style={{ background: "white", borderBottom: "1px solid #e5ead2", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 10 }}>
             <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 900, fontSize: 18, color: "#232a15" }}>PimChim<span style={{ color: "#57712f" }}>+</span></div>
