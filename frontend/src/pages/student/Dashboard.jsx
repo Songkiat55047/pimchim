@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../stores/authStore";
 import useT, { useLang } from "../../i18n/useT";
 import LanguageToggle from "../../components/LanguageToggle";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+import { BASE_URL as API } from "../../api/axios";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const typeColors = {
